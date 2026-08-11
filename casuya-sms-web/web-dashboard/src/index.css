@@ -1759,3 +1759,238 @@ body {
     font-size: 12px !important;
   }
 }
+
+/* ==================== FOOTER ==================== */
+.site-footer {
+  background: #1a2332;
+  color: #c9d1d9;
+  margin-top: 40px;
+}
+
+.footer-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-top {
+  display: flex;
+  gap: 40px;
+  padding: 40px 0 30px;
+}
+
+.footer-brand {
+  flex: 1;
+  min-width: 200px;
+}
+
+.footer-logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.footer-tagline {
+  font-size: 13px;
+  color: #8892a0;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 280px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 140px;
+}
+
+.footer-heading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #60a5fa;
+  margin: 0 0 4px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #a0aec0;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.footer-link:hover {
+  color: #fff;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-top: 1px solid #2d3748;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.footer-bottom-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-bottom-links a {
+  font-size: 12px;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.footer-bottom-links a:hover {
+  color: #e2e8f0;
+}
+
+/* Footer responsive */
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px 0 20px;
+  }
+
+  .footer-links {
+    gap: 24px;
+  }
+
+  .footer-col {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 16px 0;
+  }
+}
+
+/* ==================== LEGAL PAGES ==================== */
+.legal-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.legal-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
+}
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #2563eb;
+  text-decoration: none;
+  margin-bottom: 24px;
+}
+
+.legal-back:hover {
+  text-decoration: underline;
+}
+
+.legal-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a2332;
+  margin: 0 0 8px;
+}
+
+.legal-updated {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 32px;
+}
+
+.legal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  border: 1px solid #e5e7eb;
+}
+
+.legal-content h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2332;
+  margin: 28px 0 12px;
+}
+
+.legal-content h2:first-child {
+  margin-top: 0;
+}
+
+.legal-content h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 20px 0 8px;
+}
+
+.legal-content p {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.7;
+  margin: 0 0 12px;
+}
+
+.legal-content ul {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.7;
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.legal-content li {
+  margin-bottom: 4px;
+}
+
+.legal-content a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .legal-container {
+    padding: 20px 16px 40px;
+  }
+
+  .legal-title {
+    font-size: 24px;
+  }
+
+  .legal-content {
+    padding: 20px;
+  }
+}

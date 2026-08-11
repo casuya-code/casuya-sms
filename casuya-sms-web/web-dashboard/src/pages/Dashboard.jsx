@@ -7,6 +7,7 @@ import SendSmsPanel from "../components/SendSmsPanel";
 import UsageLog from "../components/UsageLog";
 import ApiKeyManager from "../components/ApiKeyManager";
 import TemplateList from "../components/TemplateList";
+import Footer from "../components/Footer";
 
 const VALID_SECTIONS = ["devices", "send", "templates", "logs", "apikeys"];
 const PAGE_TITLES = {
@@ -85,6 +86,8 @@ export default function Dashboard() {
           {active === "logs" && <UsageLog />}
           {active === "apikeys" && <ApiKeyManager />}
         </div>
+
+        <Footer />
       </div>
     </div>
   );
