@@ -39,11 +39,13 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
       callback(null, true);
     } else {
-      callback(new Error("CORS not allowed"));
+      const err = new Error("CORS not allowed");
+      err.statusCode = 403;
+      callback(err);
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PATCH", "DELETE"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-API-KEY"],
   maxAge: 86400,
 }));
