@@ -74,9 +74,7 @@ export default function Dashboard() {
             >
               {sidebarOpen ? "\u2715" : "\u2630"}
             </button>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1a2332" }}>
-              {PAGE_TITLES[active]}
-            </div>
+            <div className="dash-header-title">{PAGE_TITLES[active]}</div>
           </div>
         </header>
 
