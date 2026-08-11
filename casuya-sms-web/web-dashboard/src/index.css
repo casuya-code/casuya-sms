@@ -191,6 +191,28 @@ body {
   color: #e2e8f0;
 }
 
+.sidebar-header-admin {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+}
+
+.sidebar-avatar-admin {
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+}
+
+.sidebar-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #374151;
+  color: #9ca3af;
+}
+
+.sidebar-badge-active {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
 .main-content {
   padding: 20px !important;
 }

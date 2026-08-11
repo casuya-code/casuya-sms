@@ -1,90 +1,64 @@
+const Icons = {
+  Overview: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+    </svg>
+  ),
+  Users: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  Devices: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12.01" y2="18" />
+    </svg>
+  ),
+  Logs: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  ),
+  Back: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+    </svg>
+  ),
+};
+
 const NAV_ITEMS = [
-  { key: "overview", label: "Overview", icon: "📊" },
-  { key: "users", label: "Users", icon: "👥" },
-  { key: "devices", label: "Devices", icon: "📱" },
-  { key: "logs", label: "SMS Logs", icon: "💬" },
+  { key: "overview", label: "Overview", icon: Icons.Overview },
+  { key: "users", label: "Users", icon: Icons.Users },
+  { key: "devices", label: "Devices", icon: Icons.Devices },
+  { key: "logs", label: "SMS Logs", icon: Icons.Logs },
 ];
 
 export default function AdminSidebar({ active, onSelect, counts, user, onBack, open, onClose }) {
   return (
     <>
-      {open && (
-        <div
-          onClick={onClose}
-          className="sidebar-overlay"
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 40,
-          }}
-        />
-      )}
+      {open && <div onClick={onClose} className="sidebar-overlay" />}
 
-      <aside
-        className={`sidebar ${open ? "sidebar-open" : ""}`}
-        style={{
-          width: 240,
-          minWidth: 240,
-          background: "#1a2332",
-          color: "#c9d1d9",
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            padding: "20px 20px 16px",
-            borderBottom: "1px solid #2d3748",
-          }}
-        >
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 2 }}>
-            casuya-sms
-          </div>
-          <div style={{ fontSize: 12, color: "#8892a0" }}>Admin Console</div>
+      <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
+        <div className="sidebar-header sidebar-header-admin">
+          <div className="sidebar-brand">Casuya SMS</div>
+          <div className="sidebar-sub">Admin Console</div>
         </div>
 
-        <nav style={{ flex: 1, padding: "12px 0", overflowY: "auto" }}>
+        <nav className="sidebar-nav">
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.key;
             const count = counts[item.key];
+            const Icon = item.icon;
             return (
               <button
                 key={item.key}
                 onClick={() => { onSelect(item.key); onClose(); }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  width: "100%",
-                  padding: "10px 20px",
-                  border: "none",
-                  background: isActive ? "#2563eb" : "transparent",
-                  color: isActive ? "#fff" : "#c9d1d9",
-                  fontSize: 14,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "background 0.15s",
-                }}
+                className={`sidebar-item ${isActive ? "sidebar-item-active" : ""}`}
               >
-                <span style={{ fontSize: 16, width: 22, textAlign: "center" }}>{item.icon}</span>
+                <span className="sidebar-icon"><Icon /></span>
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {count !== undefined && (
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      padding: "1px 8px",
-                      borderRadius: 10,
-                      background: isActive ? "rgba(255,255,255,0.2)" : "#2d3748",
-                      color: isActive ? "#fff" : "#8892a0",
-                    }}
-                  >
+                  <span className={`sidebar-badge ${isActive ? "sidebar-badge-active" : ""}`}>
                     {count}
                   </span>
                 )}
@@ -93,69 +67,18 @@ export default function AdminSidebar({ active, onSelect, counts, user, onBack, o
           })}
         </nav>
 
-        <div
-          style={{
-            padding: "16px 20px",
-            borderTop: "1px solid #2d3748",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              marginBottom: 12,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "#2563eb",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 14,
-              }}
-            >
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar sidebar-avatar-admin">
               {user?.email?.[0]?.toUpperCase() || "?"}
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#fff",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {user?.email}
-              </div>
-              <div style={{ fontSize: 11, color: "#8892a0" }}>Administrator</div>
+            <div className="sidebar-user-info">
+              <div className="sidebar-email">{user?.email}</div>
+              <div className="sidebar-role">Administrator</div>
             </div>
           </div>
-          <button
-            onClick={onBack}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              width: "100%",
-              padding: "8px 12px",
-              border: "1px solid #2d3748",
-              borderRadius: 6,
-              background: "transparent",
-              color: "#8892a0",
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-          >
-            <span>←</span> Back to Dashboard
+          <button onClick={onBack} className="sidebar-logout">
+            <Icons.Back /> Back to Dashboard
           </button>
         </div>
       </aside>

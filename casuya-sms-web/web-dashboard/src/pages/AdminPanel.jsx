@@ -122,7 +122,7 @@ export default function AdminPanel() {
             >
               {sidebarOpen ? "\u2715" : "\u2630"}
             </button>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1a2332" }}>
+            <div className="dash-header-title">
               {active === "overview" && "Dashboard Overview"}
               {active === "users" && "User Management"}
               {active === "devices" && "Device Management"}
