@@ -1,23 +1,67 @@
 const router = require("express").Router();
+const rateLimit = require("express-rate-limit");
+const { ipKeyGenerator } = require("express-rate-limit");
 const apiKeyAuth = require("../middleware/apiKeyAuth");
-const auth = require("../middleware/auth");
+const eitherAuth = require("../middleware/eitherAuth");
 const { pool } = require("../config/database");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
 const { broadcast } = require("../core/websocket");
 const asyncHandler = require("../middleware/asyncHandler");
 
+// --- Rate limit: 30 SMS sends per minute per user ---
+const smsSendLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "SMS rate limit exceeded, slow down" },
+  keyGenerator: (req) => req.user_id || ipKeyGenerator(req),
+});
+
+// --- Rate limit: 10 bulk sends per minute per user ---
+const bulkSendLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "bulk send rate limit exceeded, slow down" },
+  keyGenerator: (req) => req.user_id || ipKeyGenerator(req),
+});
+
 router.get(
   "/sms/logs",
-  auth,
+  eitherAuth,
   asyncHandler(async (req, res) => {
-    const logs = await UsageLog.listByUser(req.user.id);
+    const logs = await UsageLog.listByUser(req.user_id);
     return res.json(logs);
+  })
+);
+
+router.delete(
+  "/sms/logs/:id",
+  eitherAuth,
+  asyncHandler(async (req, res) => {
+    const deleted = await UsageLog.remove(req.user_id, parseInt(req.params.id, 10));
+    if (!deleted) {
+      return res.status(404).json({ error: "log not found" });
+    }
+    return res.json({ success: true });
+  })
+);
+
+router.delete(
+  "/sms/logs",
+  eitherAuth,
+  asyncHandler(async (req, res) => {
+    const count = await UsageLog.clearAll(req.user_id);
+    return res.json({ success: true, deleted: count });
   })
 );
 
 router.post(
   "/send",
+  smsSendLimiter,
   apiKeyAuth,
   asyncHandler(async (req, res) => {
     const { to, message } = req.body || {};
@@ -73,6 +117,7 @@ router.get(
 
 router.post(
   "/bulk",
+  bulkSendLimiter,
   apiKeyAuth,
   asyncHandler(async (req, res) => {
     const { messages, device_id } = req.body || {};
@@ -84,14 +129,13 @@ router.post(
     }
 
     let device;
+    const devices = await Device.listByUser(req.user_id);
     if (device_id) {
-      const devices = await Device.listByUser(req.user_id);
       device = devices.find((d) => d.id === device_id && d.status === "online");
       if (!device) {
         return res.status(403).json({ error: "device not found or offline" });
       }
     } else {
-      const devices = await Device.listByUser(req.user_id);
       device = devices.find((d) => d.status === "online") || null;
       if (!device) {
         return res.status(503).json({ error: "no online device available" });

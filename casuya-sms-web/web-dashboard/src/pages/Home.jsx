@@ -48,7 +48,7 @@ export default function Home() {
             <button onClick={() => navigate("/login")} className="home-btn-cta">
               Start Sending Free
             </button>
-            <a href="https://github.com/your-repo" target="_blank" rel="noreferrer" className="home-btn-ghost">
+            <a               href="https://github.com/casuya-code/casuya-sms" target="_blank" rel="noreferrer" className="home-btn-ghost">
               View on GitHub
             </a>
           </div>

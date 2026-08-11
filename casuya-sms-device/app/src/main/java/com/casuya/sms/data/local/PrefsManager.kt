@@ -10,10 +10,29 @@ object PrefsManager {
     private const val KEY_TOKEN = "jwt_token"
     private const val KEY_DEVICE_ID = "device_id"
     private const val KEY_EMAIL = "user_email"
+    private const val KEY_GATEWAY_ENABLED = "gateway_enabled"
+    private const val KEY_STICKY_NOTIF = "sticky_notif"
+    private const val KEY_SEND_DELAY = "send_delay"
+    private const val KEY_SIM_SLOT = "sim_slot"
 
-    private lateinit var prefs: SharedPreferences
+    private var prefs: SharedPreferences? = null
 
     fun init(context: Context) {
+        try {
+            initPrefs(context)
+        } catch (e: Exception) {
+            // If initialization fails (e.g. corrupted key), clear and retry once
+            try {
+                context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+                initPrefs(context)
+            } catch (e2: Exception) {
+                // Last resort: Fallback to plain preferences so the app doesn't crash
+                prefs = context.getSharedPreferences(PREF_NAME + "_fallback", Context.MODE_PRIVATE)
+            }
+        }
+    }
+
+    private fun initPrefs(context: Context) {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -26,17 +45,33 @@ object PrefsManager {
         )
     }
 
-    fun saveToken(token: String) = prefs.edit().putString(KEY_TOKEN, token).apply()
-    fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
+    fun saveToken(token: String) = prefs?.edit()?.putString(KEY_TOKEN, token)?.apply()
+    fun getToken(): String? = prefs?.getString(KEY_TOKEN, null)
 
-    fun saveDeviceId(deviceId: String) = prefs.edit().putString(KEY_DEVICE_ID, deviceId).apply()
-    fun getDeviceId(): String? = prefs.getString(KEY_DEVICE_ID, null)
+    fun saveDeviceId(deviceId: String) = prefs?.edit()?.putString(KEY_DEVICE_ID, deviceId)?.apply()
+    fun getDeviceId(): String? = prefs?.getString(KEY_DEVICE_ID, null)
 
-    fun saveEmail(email: String) = prefs.edit().putString(KEY_EMAIL, email).apply()
-    fun getEmail(): String? = prefs.getString(KEY_EMAIL, null)
+    fun saveEmail(email: String) = prefs?.edit()?.putString(KEY_EMAIL, email)?.apply()
+    fun getEmail(): String? = prefs?.getString(KEY_EMAIL, null)
 
-    fun clear() {
-        prefs.edit().remove(KEY_TOKEN).remove(KEY_DEVICE_ID).remove(KEY_EMAIL).apply()
+    fun isGatewayEnabled() = prefs?.getBoolean(KEY_GATEWAY_ENABLED, true) ?: true
+    fun setGatewayEnabled(enabled: Boolean) = prefs?.edit()?.putBoolean(KEY_GATEWAY_ENABLED, enabled)?.apply()
+
+    fun isStickyNotifEnabled() = prefs?.getBoolean(KEY_STICKY_NOTIF, true) ?: true
+    fun setStickyNotifEnabled(enabled: Boolean) = prefs?.edit()?.putBoolean(KEY_STICKY_NOTIF, enabled)?.apply()
+
+    fun getSendDelay() = prefs?.getInt(KEY_SEND_DELAY, 2) ?: 2
+    fun setSendDelay(delay: Int) = prefs?.edit()?.putInt(KEY_SEND_DELAY, delay)?.apply()
+
+    fun getSimSlot() = prefs?.getInt(KEY_SIM_SLOT, 0) ?: 0 // 0 for Auto/Default
+    fun setSimSlot(slot: Int) = prefs?.edit()?.putInt(KEY_SIM_SLOT, slot)?.apply()
+
+    fun clearSession() {
+        prefs?.edit()?.remove(KEY_TOKEN)?.remove(KEY_EMAIL)?.apply()
+    }
+
+    fun clearAll() {
+        prefs?.edit()?.clear()?.apply()
     }
 
     fun isLoggedIn() = !getToken().isNullOrEmpty() && !getDeviceId().isNullOrEmpty()

@@ -1,5 +1,6 @@
 package com.casuya.sms.network
 
+import android.util.Log
 import com.casuya.sms.data.local.PrefsManager
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -15,6 +16,11 @@ class AuthInterceptor : Interceptor {
         } else {
             request
         }
-        return chain.proceed(newRequest)
+        val response = chain.proceed(newRequest)
+        if (response.code == 401) {
+            Log.w("AuthInterceptor", "401 received — clearing session")
+            PrefsManager.clearSession()
+        }
+        return response
     }
 }

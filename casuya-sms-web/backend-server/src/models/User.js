@@ -29,7 +29,15 @@ async function findById(id) {
   return rows[0] || null;
 }
 
+function validatePasswordStrength(password) {
+  if (password.length < 8) throw new Error("password must be at least 8 characters");
+  if (!/[A-Z]/.test(password)) throw new Error("password must contain at least one uppercase letter");
+  if (!/[a-z]/.test(password)) throw new Error("password must contain at least one lowercase letter");
+  if (!/[0-9]/.test(password)) throw new Error("password must contain at least one number");
+}
+
 async function createUser(email, password, role = "user") {
+  validatePasswordStrength(password);
   const hash = await bcrypt.hash(password, 10);
   const { rows } = await query(
     "INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING *",

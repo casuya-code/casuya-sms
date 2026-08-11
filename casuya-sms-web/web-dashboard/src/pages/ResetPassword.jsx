@@ -68,13 +68,14 @@ export default function ResetPassword() {
         <form onSubmit={submit} className="fp-form">
           <input
             type="password"
-            placeholder="new password (min 6 chars)"
+            placeholder="new password (min 8 chars, uppercase + lowercase + number)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="fp-input"
             required
-            minLength={6}
+            minLength={8}
             autoFocus
+            autoComplete="new-password"
           />
           <input
             type="password"
@@ -83,7 +84,8 @@ export default function ResetPassword() {
             onChange={(e) => setConfirm(e.target.value)}
             className="fp-input"
             required
-            minLength={6}
+            minLength={8}
+            autoComplete="new-password"
           />
           {error && <div className="fp-error">{error}</div>}
           <button type="submit" className="fp-btn fp-btn-primary" disabled={loading}>

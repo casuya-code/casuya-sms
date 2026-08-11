@@ -78,140 +78,67 @@ export default function DeviceList() {
   const online = devices.filter((d) => d.status === "online").length;
   const offline = devices.length - online;
 
-  const card = {
-    border: "1px solid #ddd",
-    borderRadius: 8,
-    padding: 16,
-  };
-
-  const inputStyle = {
-    padding: "8px 12px",
-    fontSize: 14,
-    border: "1px solid #ddd",
-    borderRadius: 4,
-  };
-
   return (
-    <section style={card}>
-      <div
-        className="flex-header"
-        style={{ marginBottom: 14 }}
-      >
-        <h2 style={{ margin: 0 }}>Devices</h2>
+    <section className="dev-card">
+      <div className="dev-header">
+        <h2 className="dev-title">Devices</h2>
         {devices.length > 0 && (
-          <span style={{ fontSize: 13, color: "#888" }}>
-            {online} online · {offline} offline
+          <span className="dev-count">
+            {online} online &middot; {offline} offline
           </span>
         )}
       </div>
 
-      {error && (
-        <p
-          style={{
-            color: "#d32f2f",
-            padding: "8px 12px",
-            background: "#ffebee",
-            borderRadius: 6,
-            border: "1px solid #ef9a9a",
-            margin: "0 0 12px",
-            fontSize: 14,
-          }}
-        >
-          {error}
-        </p>
-      )}
-      {result && (
-        <p
-          style={{
-            color: "#155724",
-            padding: "8px 12px",
-            background: "#d4edda",
-            borderRadius: 6,
-            border: "1px solid #a5d6a7",
-            margin: "0 0 12px",
-            fontSize: 14,
-          }}
-        >
-          {result}
-        </p>
-      )}
+      {error && <p className="dev-error">{error}</p>}
+      {result && <p className="dev-success">{result}</p>}
 
-      <div className="flex-row" style={{ marginBottom: 16 }}>
+      <div className="dev-register-row">
         <input
           type="text"
           placeholder="Device name (optional)"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && register()}
-          style={{ ...inputStyle, flex: 1 }}
+          className="dev-input"
           disabled={registering}
         />
         <button
           onClick={register}
           disabled={registering}
-          style={{
-            cursor: "pointer",
-            padding: "8px 18px",
-            background: "#1e88e5",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            fontSize: 14,
-            fontWeight: 500,
-          }}
+          className="dev-register-btn"
         >
           {registering ? "Registering..." : "Register"}
         </button>
       </div>
 
       {loading && (
-        <p style={{ color: "#888", textAlign: "center", padding: 20 }}>Loading devices...</p>
+        <p className="dev-empty">Loading devices...</p>
       )}
 
       {!loading && devices.length === 0 && (
-        <div
-          style={{
-            textAlign: "center",
-            padding: 30,
-            color: "#888",
-            background: "#fafafa",
-            borderRadius: 6,
-          }}
-        >
-          <p style={{ margin: "0 0 8px", fontSize: 15 }}>No devices registered yet</p>
-          <p style={{ margin: 0, fontSize: 13 }}>
+        <div className="dev-empty-box">
+          <p className="dev-empty-title">No devices registered yet</p>
+          <p className="dev-empty-desc">
             Register one above, then connect your Android device with the same device ID.
           </p>
         </div>
       )}
 
       {devices.length > 0 && (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className="dev-list">
           {devices.map((d) => {
             const isOnline = d.status === "online";
             const isEditing = editingId === d.id;
             return (
-              <li
-                key={d.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "12px 0",
-                  borderBottom: "1px solid #f0f0f0",
-                }}
-              >
+              <li key={d.id} className="dev-item">
                 <span
+                  className="dev-status-dot"
                   style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
                     background: isOnline ? "#4caf50" : "#bbb",
-                    flexShrink: 0,
                     boxShadow: isOnline ? "0 0 6px #4caf50" : "none",
                   }}
                 />
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="dev-info">
                   {isEditing ? (
                     <input
                       type="text"
@@ -221,56 +148,23 @@ export default function DeviceList() {
                         if (e.key === "Enter") rename(d.id);
                         if (e.key === "Escape") setEditingId(null);
                       }}
-                      style={{ ...inputStyle, width: "100%" }}
+                      className="dev-input dev-input-full"
                       autoFocus
                     />
                   ) : (
                     <>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>
-                        {d.device_name || "Unnamed Device"}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontFamily: "monospace",
-                          color: "#aaa",
-                          marginTop: 2,
-                        }}
-                        title={d.id}
-                      >
-                        {d.id}
-                      </div>
+                      <div className="dev-name">{d.device_name || "Unnamed Device"}</div>
+                      <div className="dev-id" title={d.id}>{d.id}</div>
                     </>
                   )}
                 </div>
-                <div className="device-actions" style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <div className="dev-actions">
                   {isEditing ? (
                     <>
-                      <button
-                        onClick={() => rename(d.id)}
-                        style={{
-                          cursor: "pointer",
-                          padding: "5px 12px",
-                          fontSize: 12,
-                          background: "#1e88e5",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 4,
-                        }}
-                      >
+                      <button onClick={() => rename(d.id)} className="dev-btn dev-btn-primary">
                         Save
                       </button>
-                      <button
-                        onClick={() => setEditingId(null)}
-                        style={{
-                          cursor: "pointer",
-                          padding: "5px 12px",
-                          fontSize: 12,
-                          background: "#f5f5f5",
-                          border: "1px solid #ddd",
-                          borderRadius: 4,
-                        }}
-                      >
+                      <button onClick={() => setEditingId(null)} className="dev-btn dev-btn-cancel">
                         Cancel
                       </button>
                     </>
@@ -279,47 +173,21 @@ export default function DeviceList() {
                       <button
                         onClick={() => copyId(d.id)}
                         title="Copy device ID to clipboard"
-                        style={{
-                          cursor: "pointer",
-                          padding: "5px 10px",
-                          fontSize: 12,
-                          background: copiedId === d.id ? "#4caf50" : "#f5f5f5",
-                          color: copiedId === d.id ? "#fff" : "#555",
-                          border: `1px solid ${copiedId === d.id ? "#4caf50" : "#ddd"}`,
-                          borderRadius: 4,
-                        }}
+                        className={`dev-btn ${copiedId === d.id ? "dev-btn-copied" : "dev-btn-copy"}`}
                       >
                         {copiedId === d.id ? "Copied!" : "Copy ID"}
                       </button>
                       <button
-                        onClick={() => {
-                          setEditingId(d.id);
-                          setEditName(d.device_name || "");
-                        }}
+                        onClick={() => { setEditingId(d.id); setEditName(d.device_name || ""); }}
                         title="Rename device"
-                        style={{
-                          cursor: "pointer",
-                          padding: "5px 10px",
-                          fontSize: 12,
-                          background: "#f5f5f5",
-                          border: "1px solid #ddd",
-                          borderRadius: 4,
-                        }}
+                        className="dev-btn dev-btn-cancel"
                       >
                         Rename
                       </button>
                       <button
                         onClick={() => remove(d.id, d.device_name)}
                         title="Delete device"
-                        style={{
-                          cursor: "pointer",
-                          padding: "5px 10px",
-                          fontSize: 12,
-                          color: "#d32f2f",
-                          background: "none",
-                          border: "1px solid #ef9a9a",
-                          borderRadius: 4,
-                        }}
+                        className="dev-btn dev-btn-delete"
                       >
                         Delete
                       </button>

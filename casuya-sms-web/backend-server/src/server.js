@@ -1,22 +1,51 @@
 require("dotenv").config();
 const http = require("http");
-const { Server } = require("socket.io");
+const crypto = require("crypto");
 
 if (!process.env.JWT_SECRET) {
   console.error("FATAL: JWT_SECRET is not set. Copy .env.example to .env and set a value.");
+  process.exit(1);
+}
+if (process.env.JWT_SECRET.length < 32) {
+  console.error("FATAL: JWT_SECRET must be at least 32 characters long for security.");
+  process.exit(1);
+}
+if (process.env.JWT_SECRET === "casuya-sms-super-secret-jwt-key-2024-local-dev") {
+  console.error("FATAL: You are using the default JWT_SECRET. Generate a random one:");
+  console.error(`  node -e "console.log(crypto.randomBytes(48).toString('base64'))"`);
   process.exit(1);
 }
 if (!process.env.DATABASE_URL) {
   console.error("FATAL: DATABASE_URL is not set. Copy .env.example to .env and set a value.");
   process.exit(1);
 }
+if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD.length < 8) {
+  console.warn("WARNING: ADMIN_PASSWORD should be at least 8 characters for security.");
+}
 
 const app = require("./app");
 const websocket = require("./core/websocket");
 
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
-websocket.init(io);
+let server;
+if (process.env.NODE_ENV === "production" && process.env.HTTPS_KEY && process.env.HTTPS_CERT) {
+  const https = require("https");
+  const fs = require("fs");
+  server = https.createServer(
+    {
+      key: fs.readFileSync(process.env.HTTPS_KEY),
+      cert: fs.readFileSync(process.env.HTTPS_CERT),
+    },
+    app
+  );
+  console.log("HTTPS server starting...");
+} else {
+  server = http.createServer(app);
+  if (process.env.NODE_ENV === "production") {
+    console.warn("WARNING: Running HTTP in production. Set HTTPS_KEY and HTTPS_CERT for TLS.");
+  }
+}
+
+websocket.init(server);
 
 async function seedAdmin() {
   const User = require("./models/User");
@@ -42,7 +71,7 @@ server.listen(PORT, async () => {
       require("./models/PasswordReset").createTable(),
     ]);
     await seedAdmin();
-    console.log(`casuya-sms backend on :${PORT}`);
+    console.log(`casuya-sms backend on :${PORT} [${process.env.NODE_ENV || "development"}]`);
   } catch (err) {
     console.error("startup failed:", err.message);
     process.exit(1);

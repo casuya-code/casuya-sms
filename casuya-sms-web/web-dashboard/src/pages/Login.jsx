@@ -44,15 +44,17 @@ export default function Login() {
             className="fp-input"
             required
             autoFocus
+            autoComplete="email"
           />
           <input
             type="password"
-            placeholder={mode === "login" ? "password" : "password (min 6 chars)"}
+            placeholder={mode === "login" ? "password" : "password (min 8 chars, uppercase + lowercase + number)"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="fp-input"
             required
-            minLength={6}
+            minLength={8}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
           />
           {error && <div className="fp-error">{error}</div>}
           <button type="submit" className="fp-btn fp-btn-primary" disabled={loading}>

@@ -335,7 +335,7 @@ export default function BulkSend({ template, standalone, onDone, onBack }) {
               <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 4 }}>Send from device</label>
               <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)} style={{ padding: "8px 12px", fontSize: 13, width: "100%", boxSizing: "border-box", border: "1px solid #ddd", borderRadius: 4, background: "#fff" }}>
                 <option value="">Select a device...</option>
-                {onlineDevices.map((d) => <option key={d.id} value={d.id}>{d.name || d.id.slice(0, 8)}</option>)}
+                {onlineDevices.map((d) => <option key={d.id} value={d.id}>{d.device_name || d.id.slice(0, 8)}</option>)}
               </select>
             </div>
           </div>
@@ -389,7 +389,7 @@ export default function BulkSend({ template, standalone, onDone, onBack }) {
       {/* STEP 4: Review & Send */}
       <StepShell step={4} title="Review and send" description="Nothing is sent until you confirm" locked={!composed}>
         <div style={{ padding: 12, background: "#f8f9fa", border: "1px solid #e0e0e0", borderRadius: 6, marginBottom: 12, fontSize: 14 }}>
-          Sending <strong>{plan.valid.length.toLocaleString()} messages</strong> from <strong>{selectedDevice ? (selectedDevice.name || selectedDevice.id.slice(0, 8)) : "your device"}</strong>.
+          Sending <strong>{plan.valid.length.toLocaleString()} messages</strong> from <strong>{selectedDevice ? (selectedDevice.device_name || selectedDevice.id.slice(0, 8)) : "your device"}</strong>.
           {plan.excluded.length > 0 && (
             <details style={{ marginTop: 8 }}>
               <summary style={{ cursor: "pointer", fontSize: 12, color: "#888" }}>{plan.excluded.length} row{plan.excluded.length === 1 ? "" : "s"} skipped</summary>

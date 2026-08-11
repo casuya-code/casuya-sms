@@ -1,18 +1,63 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit");
 const User = require("../models/User");
 const PasswordReset = require("../models/PasswordReset");
 const asyncHandler = require("../middleware/asyncHandler");
 
 function signToken(user) {
   return jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: process.env.JWT_EXPIRY || "1h",
   });
 }
 
+function validatePasswordStrength(password) {
+  if (password.length < 8) {
+    return "password must be at least 8 characters";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "password must contain at least one uppercase letter";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "password must contain at least one lowercase letter";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "password must contain at least one number";
+  }
+  return null;
+}
+
+// --- Rate limit: 5 registrations per 15 min per IP ---
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "too many registration attempts, please try again later" },
+});
+
+// --- Rate limit: 10 login attempts per 15 min per IP ---
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "too many login attempts, please try again later" },
+});
+
+// --- Rate limit: 3 forgot-password requests per 15 min per IP ---
+const forgotLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "too many reset requests, please try again later" },
+});
+
 router.post(
   "/register",
+  registerLimiter,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body || {};
     if (!email || !password) {
@@ -22,8 +67,9 @@ router.post(
     if (!emailPattern.test(email)) {
       return res.status(400).json({ error: "invalid email address" });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ error: "password must be at least 6 characters" });
+    const strengthError = validatePasswordStrength(password);
+    if (strengthError) {
+      return res.status(400).json({ error: strengthError });
     }
 
     const existing = await User.findByEmail(email.toLowerCase());
@@ -38,6 +84,7 @@ router.post(
 
 router.post(
   "/login",
+  loginLimiter,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body || {};
     if (!email || !password) {
@@ -67,6 +114,7 @@ router.get(
 
 router.post(
   "/forgot-password",
+  forgotLimiter,
   asyncHandler(async (req, res) => {
     const { email } = req.body || {};
     if (!email) {
@@ -92,7 +140,6 @@ router.post(
     return res.json({
       ok: true,
       message: "If an account exists, a reset link has been generated.",
-      // In development, return the link directly so it can be shown in the UI
       ...(process.env.NODE_ENV !== "production" && { resetUrl }),
     });
   })
@@ -100,13 +147,15 @@ router.post(
 
 router.post(
   "/reset-password",
+  forgotLimiter,
   asyncHandler(async (req, res) => {
     const { token, password } = req.body || {};
     if (!token || !password) {
       return res.status(400).json({ error: "token and password are required" });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ error: "password must be at least 6 characters" });
+    const strengthError = validatePasswordStrength(password);
+    if (strengthError) {
+      return res.status(400).json({ error: strengthError });
     }
 
     const record = await PasswordReset.verifyToken(token);

@@ -31,6 +31,8 @@ export default function UsageLog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [clearingAll, setClearingAll] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -56,59 +58,59 @@ export default function UsageLog() {
     return () => clearInterval(id);
   }, [autoRefresh, load]);
 
-  const card = {
-    border: "1px solid #ddd",
-    borderRadius: 8,
-    padding: 16,
+  const deleteOne = async (id) => {
+    if (!confirm("Delete this log entry?")) return;
+    setDeletingId(id);
+    try {
+      await api.delete(`/api/v1/sms/logs/${id}`);
+      setLogs((prev) => prev.filter((l) => l.id !== id));
+    } catch (e) {
+      setError(e.response?.data?.error || "failed to delete log");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
-  const th = {
-    textAlign: "left",
-    padding: "10px 12px",
-    borderBottom: "2px solid #e0e0e0",
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#555",
-    whiteSpace: "nowrap",
+  const clearAll = async () => {
+    if (!confirm("Delete ALL log entries? This cannot be undone.")) return;
+    setClearingAll(true);
+    try {
+      const res = await api.delete("/api/v1/sms/logs");
+      setLogs([]);
+      alert(`Deleted ${res.data.deleted} log(s).`);
+    } catch (e) {
+      setError(e.response?.data?.error || "failed to clear logs");
+    } finally {
+      setClearingAll(false);
+    }
   };
-
-  const td = {
-    padding: "10px 12px",
-    borderBottom: "1px solid #f0f0f0",
-    fontSize: 13,
-  };
-
-  const hasQueued = logs.some((l) => l.status === "queued");
 
   return (
-    <section style={card}>
-      <div
-        className="flex-header"
-        style={{ marginBottom: logs.length > 0 ? 12 : 0 }}
-      >
-        <h2 style={{ margin: 0 }}>SMS Logs</h2>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {hasQueued && (
-            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}>
-              <input
-                type="checkbox"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-              />
-              Auto-refresh
-            </label>
+    <section className="logs-card">
+      <div className="logs-header">
+        <h2 className="logs-title">SMS Logs</h2>
+        <div className="logs-controls">
+          {logs.length > 0 && (
+            <button
+              onClick={clearAll}
+              disabled={clearingAll}
+              className="logs-clear-btn"
+            >
+              {clearingAll ? "Clearing..." : "Clear All"}
+            </button>
           )}
+          <label className="logs-auto-label">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+            />
+            Auto-refresh
+          </label>
           <button
             onClick={load}
             disabled={loading}
-            style={{
-              cursor: "pointer",
-              padding: "6px 14px",
-              fontSize: 13,
-              background: "#f5f5f5",
-              border: "1px solid #ddd",
-              borderRadius: 4,
-            }}
+            className="logs-refresh-btn"
           >
             {loading ? "Loading..." : "Refresh"}
           </button>
@@ -116,84 +118,88 @@ export default function UsageLog() {
       </div>
 
       {error && (
-        <p
-          style={{
-            color: "#d32f2f",
-            padding: "8px 12px",
-            background: "#ffebee",
-            borderRadius: 6,
-            border: "1px solid #ef9a9a",
-            margin: "0 0 12px",
-            fontSize: 14,
-          }}
-        >
-          {error}
-        </p>
+        <p className="logs-error">{error}</p>
       )}
 
       {loading && logs.length === 0 && (
-        <p style={{ color: "#888", textAlign: "center", padding: 20 }}>Loading logs...</p>
+        <p className="logs-empty">Loading logs...</p>
       )}
 
       {!loading && logs.length === 0 && (
-        <p style={{ color: "#888", textAlign: "center", padding: 20 }}>
-          No SMS logs yet. Send your first SMS above.
-        </p>
+        <p className="logs-empty">No SMS logs yet. Send your first SMS above.</p>
       )}
 
       {logs.length > 0 && (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={th}>#</th>
-                <th style={th}>To</th>
-                <th style={th}>Message</th>
-                <th style={th}>Status</th>
-                <th style={th}>Device</th>
-                <th style={th}>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log) => (
-                <tr key={log.id} style={{ transition: "background 0.15s" }}>
-                  <td style={td}>{log.id}</td>
-                  <td style={{ ...td, fontWeight: 500, whiteSpace: "nowrap" }}>{log.to_number}</td>
-                  <td
-                    style={{
-                      ...td,
-                      maxWidth: 280,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      color: "#555",
-                    }}
-                    title={log.message}
-                  >
-                    {log.message}
-                  </td>
-                  <td style={td}>
-                    <Badge status={log.status} />
-                  </td>
-                  <td
-                    style={{
-                      ...td,
-                      fontFamily: "monospace",
-                      fontSize: 12,
-                      color: "#888",
-                    }}
-                    title={log.device_id}
-                  >
-                    {log.device_id ? log.device_id.slice(0, 8) + "..." : "—"}
-                  </td>
-                  <td style={{ ...td, whiteSpace: "nowrap", color: "#888" }}>
-                    {new Date(log.created_at).toLocaleString()}
-                  </td>
+        <>
+          {/* Desktop table */}
+          <div className="logs-table-wrap">
+            <table className="logs-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>To</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Device</th>
+                  <th>Time</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id}>
+                    <td className="logs-td-id">{log.id}</td>
+                    <td className="logs-td-to">{log.to_number}</td>
+                    <td className="logs-td-msg" title={log.message}>{log.message}</td>
+                    <td><Badge status={log.status} /></td>
+                    <td className="logs-td-device" title={log.device_id}>
+                      {log.device_id ? log.device_id.slice(0, 8) + "..." : "\u2014"}
+                    </td>
+                    <td className="logs-td-time">{new Date(log.created_at).toLocaleString()}</td>
+                    <td className="logs-td-actions">
+                      <button
+                        onClick={() => deleteOne(log.id)}
+                        disabled={deletingId === log.id}
+                        className="logs-delete-btn"
+                        title="Delete this log"
+                      >
+                        {deletingId === log.id ? "..." : "Delete"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="logs-mobile-cards">
+            {logs.map((log) => (
+              <div key={log.id} className="logs-mobile-card">
+                <div className="logs-mobile-top">
+                  <span className="logs-mobile-id">#{log.id}</span>
+                  <Badge status={log.status} />
+                </div>
+                <div className="logs-mobile-to">{log.to_number}</div>
+                <div className="logs-mobile-msg" title={log.message}>{log.message}</div>
+                <div className="logs-mobile-bottom">
+                  <span className="logs-mobile-device" title={log.device_id}>
+                    {log.device_id ? log.device_id.slice(0, 8) + "..." : "\u2014"}
+                  </span>
+                  <span className="logs-mobile-time">{new Date(log.created_at).toLocaleString()}</span>
+                </div>
+                <button
+                  onClick={() => deleteOne(log.id)}
+                  disabled={deletingId === log.id}
+                  className="logs-delete-btn logs-delete-mobile"
+                  title="Delete this log"
+                >
+                  {deletingId === log.id ? "..." : "Delete"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </section>
   );

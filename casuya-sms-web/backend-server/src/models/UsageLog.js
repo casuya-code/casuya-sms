@@ -48,6 +48,22 @@ async function updateStatus(id, status) {
   await query("UPDATE sms_logs SET status = $1 WHERE id = $2", [status, id]);
 }
 
+async function remove(user_id, id) {
+  const { rowCount } = await query(
+    "DELETE FROM sms_logs WHERE id = $1 AND user_id = $2",
+    [id, user_id]
+  );
+  return rowCount > 0;
+}
+
+async function clearAll(user_id) {
+  const { rowCount } = await query(
+    "DELETE FROM sms_logs WHERE user_id = $1",
+    [user_id]
+  );
+  return rowCount;
+}
+
 async function countForUser(user_id) {
   const { rows } = await query(
     "SELECT COUNT(*)::int AS count FROM sms_logs WHERE user_id = $1",
@@ -56,4 +72,4 @@ async function countForUser(user_id) {
   return rows[0].count;
 }
 
-module.exports = { createTable, add, listByUser, listAll, updateStatus, countForUser };
+module.exports = { createTable, add, listByUser, listAll, updateStatus, remove, clearAll, countForUser };

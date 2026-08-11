@@ -117,7 +117,8 @@ router.post(
           sent++;
           results.push({ to: phone, status: "queued", sms_log_id: log.id });
         }
-      } catch {
+      } catch (err) {
+        console.error("template bulk send error:", err.message);
         failed++;
         results.push({ to: phone, status: "failed", error: "internal error" });
       }
