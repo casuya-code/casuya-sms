@@ -6,7 +6,6 @@ import OverviewSection from "../components/admin/OverviewSection";
 import UsersSection from "../components/admin/UsersSection";
 import DevicesSection from "../components/admin/DevicesSection";
 import LogsSection from "../components/admin/LogsSection";
-import Footer from "../components/Footer";
 
 const VALID_ADMIN_SECTIONS = ["overview", "users", "devices", "logs"];
 
@@ -184,8 +183,6 @@ export default function AdminPanel() {
             </>
           )}
         </div>
-
-        <Footer />
       </div>
     </div>
   );

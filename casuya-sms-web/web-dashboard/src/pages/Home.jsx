@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
 
 const FEATURES = [
   { icon: "\u{1F4F1}", title: "Your Own Phone", desc: "Use your Android device as an SMS gateway. No third-party services, no per-message fees." },
@@ -99,9 +100,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="home-footer">
-        casuya-sms &mdash; open-source SMS gateway
-      </footer>
+      <Footer />
     </div>
   );
 }
