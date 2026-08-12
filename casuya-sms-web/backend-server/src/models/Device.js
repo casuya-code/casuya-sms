@@ -7,9 +7,17 @@ async function createTable() {
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
       device_name TEXT NOT NULL DEFAULT 'android',
       status TEXT NOT NULL DEFAULT 'offline',
+      battery_level INTEGER,
+      is_charging BOOLEAN DEFAULT false,
+      signal_strength TEXT,
+      last_heartbeat_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+  await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS battery_level INTEGER");
+  await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS is_charging BOOLEAN DEFAULT false");
+  await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS signal_strength TEXT");
+  await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ");
 }
 
 async function register(user_id, deviceId, device_name) {
@@ -50,6 +58,19 @@ async function setStatus(deviceId, status) {
   return query("UPDATE devices SET status = $1 WHERE id = $2", [status, deviceId]);
 }
 
+async function updateHeartbeat(deviceId, { batteryLevel, isCharging, signalStrength }) {
+  return query(
+    `UPDATE devices
+     SET status = 'online',
+         battery_level = $2,
+         is_charging = $3,
+         signal_strength = $4,
+         last_heartbeat_at = NOW()
+     WHERE id = $1`,
+    [deviceId, batteryLevel ?? null, isCharging ?? false, signalStrength ?? null]
+  );
+}
+
 async function remove(user_id, deviceId) {
   await query("DELETE FROM devices WHERE id = $1 AND user_id = $2", [
     deviceId,
@@ -71,6 +92,7 @@ module.exports = {
   findByUserAndId,
   updateName,
   setStatus,
+  updateHeartbeat,
   remove,
   countOnline,
 };

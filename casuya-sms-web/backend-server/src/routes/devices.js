@@ -15,6 +15,23 @@ router.post(
   })
 );
 
+router.post(
+  "/heartbeat",
+  auth,
+  asyncHandler(async (req, res) => {
+    const { deviceId, batteryLevel, isCharging, signalStrength } = req.body || {};
+    if (!deviceId) {
+      return res.status(400).json({ error: "deviceId is required" });
+    }
+    const device = await Device.findByUserAndId(req.user.id, deviceId);
+    if (!device) {
+      return res.status(404).json({ error: "device not found" });
+    }
+    await Device.updateHeartbeat(deviceId, { batteryLevel, isCharging, signalStrength });
+    return res.json({ ok: true });
+  })
+);
+
 router.get(
   "/",
   auth,

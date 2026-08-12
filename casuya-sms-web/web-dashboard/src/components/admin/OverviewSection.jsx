@@ -12,32 +12,21 @@ export default function OverviewSection({ stats, users, devices, logs }) {
 
   return (
     <div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 16,
-          marginBottom: 28,
-        }}
-      >
+      <div className="stats-grid" style={{ marginBottom: 28 }}>
         {STAT_CARDS.map((c) => (
           <div
             key={c.key}
+            className="stat-card"
             style={{
-              padding: 24,
-              borderRadius: 10,
               background: c.bg,
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
             }}
           >
-            <div style={{ fontSize: 28 }}>{c.icon}</div>
+            <div className="stat-icon">{c.icon}</div>
             <div>
-              <div style={{ fontSize: 32, fontWeight: 700, color: c.color, lineHeight: 1 }}>
+              <div className="stat-number" style={{ color: c.color }}>
                 {stats[c.key]}
               </div>
-              <div style={{ fontSize: 14, color: "#555", marginTop: 4 }}>{c.label}</div>
+              <div className="stat-label">{c.label}</div>
             </div>
           </div>
         ))}

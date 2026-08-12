@@ -23,6 +23,18 @@ const SAMPLE_DATA = {
   computed: "Jumla: 844, Wastani: 84, Daraja: A, Nafasi: 3",
 };
 
+const PREVIEW_REPLACERS = [
+  ["{name}", SAMPLE_DATA.name],
+  ["{phone}", SAMPLE_DATA.phone],
+  ["{date}", SAMPLE_DATA.date],
+  ["{text_1}", SAMPLE_DATA.text_1],
+  ["{text_2}", SAMPLE_DATA.text_2],
+  ["{text}", SAMPLE_DATA.text],
+  ["{numeric_1}", SAMPLE_DATA.numeric_1],
+  ["{numeric}", SAMPLE_DATA.numeric],
+  ["{computed}", SAMPLE_DATA.computed],
+];
+
 const VAR_TABLE = [
   { var: "{name}", type: "name", matches: "Any column with 'name', 'jina', 'first', 'last', 'surname' in header", example: "F.Name + M.Name + Surname → 'John Peter Mwangi'" },
   { var: "{phone}", type: "phone", matches: "Any column with 'number', 'phone', 'simu', 'namba', 'tel' in header", example: "Number → '0712345678'" },
@@ -38,17 +50,10 @@ const VAR_TABLE = [
 function Preview({ message }) {
   const preview = useMemo(() => {
     if (!message) return "";
-    let result = message;
-    result = result.replace(/\{name\}/g, SAMPLE_DATA.name);
-    result = result.replace(/\{phone\}/g, SAMPLE_DATA.phone);
-    result = result.replace(/\{date\}/g, SAMPLE_DATA.date);
-    result = result.replace(/\{numeric\}/g, SAMPLE_DATA.numeric);
-    result = result.replace(/\{computed\}/g, SAMPLE_DATA.computed);
-    result = result.replace(/\{(text)\}/g, SAMPLE_DATA.text);
-    result = result.replace(/\{text_1\}/g, SAMPLE_DATA.text_1);
-    result = result.replace(/\{text_2\}/g, SAMPLE_DATA.text_2);
-    result = result.replace(/\{numeric_1\}/g, SAMPLE_DATA.numeric_1);
-    return result;
+    return PREVIEW_REPLACERS.reduce(
+      (result, [token, value]) => result.split(token).join(value),
+      message
+    );
   }, [message]);
 
   if (!message) return null;
@@ -82,6 +87,7 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
   const handleSubmit = async () => {
     if (!name.trim()) { setError("Template name is required"); return; }
     if (!message.trim()) { setError("Message is required"); return; }
+    if (message.length > 1500) { setError("Message must be 1500 characters or fewer"); return; }
     setSaving(true);
     setError("");
     try {
@@ -141,6 +147,7 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={6}
+            maxLength={1500}
             style={{ ...inputStyle, resize: "vertical", fontFamily: "monospace", fontSize: 13 }}
           />
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>

@@ -1,21 +1,32 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, getUser, clearSession } from "../lib/api";
-import UserSidebar from "../components/UserSidebar";
+import Sidebar, { Icons } from "../components/Sidebar";
 import DeviceList from "../components/DeviceList";
 import SendSmsPanel from "../components/SendSmsPanel";
 import UsageLog from "../components/UsageLog";
 import ApiKeyManager from "../components/ApiKeyManager";
 import TemplateList from "../components/TemplateList";
+import Messages from "../components/Messages";
 
-const VALID_SECTIONS = ["devices", "send", "templates", "logs", "apikeys"];
+const VALID_SECTIONS = ["devices", "send", "templates", "messages", "logs", "apikeys"];
 const PAGE_TITLES = {
   devices: "My Devices",
   send: "Send SMS",
   templates: "SMS Templates",
+  messages: "All Messages",
   logs: "SMS Logs",
   apikeys: "API Keys",
 };
+
+const USER_NAV_ITEMS = [
+  { key: "devices", label: "Devices", icon: Icons.Devices },
+  { key: "send", label: "Send SMS", icon: Icons.Send },
+  { key: "templates", label: "Templates", icon: Icons.Templates },
+  { key: "messages", label: "All Messages", icon: Icons.Messages },
+  { key: "logs", label: "SMS Logs", icon: Icons.Logs },
+  { key: "apikeys", label: "API Keys", icon: Icons.ApiKeys },
+];
 
 export default function Dashboard() {
   const [user, setUser] = useState(getUser());
@@ -48,6 +59,14 @@ export default function Dashboard() {
     return () => { cancelled = true; };
   }, [navigate]);
 
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setSidebarOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const logout = () => {
     clearSession();
     navigate("/login");
@@ -55,14 +74,36 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: "flex", fontFamily: "system-ui, sans-serif" }}>
-      <UserSidebar
+      <Sidebar
         active={active}
         onSelect={handleSectionChange}
         user={user}
-        onLogout={logout}
-        onAdmin={() => navigate("/admin")}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        ariaLabel="User navigation"
+        sidebarId="dashboard-sidebar"
+        headerSub="SMS Gateway"
+        roleLabel={user?.role === "admin" ? "Admin" : undefined}
+        navItems={USER_NAV_ITEMS}
+        extraNav={
+          user?.role === "admin" ? (
+            <>
+              <div className="sidebar-divider" />
+              <button
+                onClick={() => { navigate("/admin"); setSidebarOpen(false); }}
+                className="sidebar-item sidebar-item-admin"
+              >
+                <span className="sidebar-icon"><Icons.Admin /></span>
+                <span>Admin Panel</span>
+              </button>
+            </>
+          ) : null
+        }
+        footer={
+          <button onClick={logout} className="sidebar-logout">
+            <Icons.Logout /> Sign Out
+          </button>
+        }
       />
 
       <div style={{ flex: 1, minHeight: "100vh", background: "#f5f5f5" }}>
@@ -71,6 +112,9 @@ export default function Dashboard() {
             <button
               className="hamburger-btn"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle navigation"
+              aria-expanded={sidebarOpen}
+              aria-controls="dashboard-sidebar"
             >
               {sidebarOpen ? "\u2715" : "\u2630"}
             </button>
@@ -82,6 +126,7 @@ export default function Dashboard() {
           {active === "devices" && <DeviceList />}
           {active === "send" && <SendSmsPanel />}
           {active === "templates" && <TemplateList />}
+          {active === "messages" && <Messages />}
           {active === "logs" && <UsageLog />}
           {active === "apikeys" && <ApiKeyManager />}
         </div>

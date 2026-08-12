@@ -69,6 +69,7 @@ server.listen(PORT, async () => {
       require("./models/UsageLog").createTable(),
       require("./models/Template").createTable(),
       require("./models/PasswordReset").createTable(),
+      require("./models/Message").createTable(),
     ]);
     await seedAdmin();
     console.log(`casuya-sms backend on :${PORT} [${process.env.NODE_ENV || "development"}]`);

@@ -1,24 +1,7 @@
 import { useState } from "react";
+import Pagination from "../Pagination";
 
-const td = {
-  padding: "12px 14px",
-  borderBottom: "1px solid #f0f0f0",
-  fontSize: 13,
-};
-
-const th = {
-  textAlign: "left",
-  padding: "12px 14px",
-  borderBottom: "2px solid #e0e0e0",
-  fontSize: 12,
-  fontWeight: 600,
-  color: "#666",
-  textTransform: "uppercase",
-  letterSpacing: "0.04em",
-  whiteSpace: "nowrap",
-};
-
-export default function DevicesSection({ devices }) {
+export default function DevicesSection({ devices, total, page, pageSize, onPage }) {
   const [search, setSearch] = useState("");
 
   const filtered = devices.filter(
@@ -35,9 +18,9 @@ export default function DevicesSection({ devices }) {
     <div>
       <div className="flex-header" style={{ marginBottom: 16 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 18 }}>Device Management</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#888" }}>
-            {devices.length} total ·{" "}
+          <h2 className="section-title">Device Management</h2>
+          <p className="section-sub">
+            {total} total ·{" "}
             <span style={{ color: "#4caf50" }}>{online} online</span> ·{" "}
             <span style={{ color: "#888" }}>{offline} offline</span>
           </p>
@@ -65,28 +48,24 @@ export default function DevicesSection({ devices }) {
         }}
       >
         <div className="table-wrap">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="tbl">
             <thead>
               <tr>
-                <th style={th}>Device ID</th>
-                <th style={th}>Name</th>
-                <th style={th}>Status</th>
-                <th style={th}>Owner</th>
-                <th style={th}>Registered</th>
+                <th>Device ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Owner</th>
+                <th>Registered</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((d) => (
-                <tr
-                  key={d.id}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#fafafa")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <td style={{ ...td, fontFamily: "monospace", fontSize: 12, color: "#888" }}>
+                <tr key={d.id}>
+                  <td style={{ fontFamily: "monospace", fontSize: 12, color: "#888" }}>
                     {d.id.slice(0, 12)}...
                   </td>
-                  <td style={{ ...td, fontWeight: 500 }}>{d.device_name}</td>
-                  <td style={td}>
+                  <td style={{ fontWeight: 500 }}>{d.device_name}</td>
+                  <td>
                     <span
                       style={{
                         display: "inline-flex",
@@ -111,8 +90,8 @@ export default function DevicesSection({ devices }) {
                       {d.status}
                     </span>
                   </td>
-                  <td style={td}>{d.user_email}</td>
-                  <td style={{ ...td, whiteSpace: "nowrap" }}>
+                  <td>{d.user_email}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>
                     {new Date(d.created_at).toLocaleString()}
                   </td>
                 </tr>
@@ -121,10 +100,11 @@ export default function DevicesSection({ devices }) {
           </table>
         </div>
         {filtered.length === 0 && (
-          <p style={{ color: "#888", textAlign: "center", padding: 24, margin: 0 }}>
+          <p className="table-empty">
             {search ? "No devices match your search." : "No devices registered."}
           </p>
         )}
+        <Pagination page={page} pageSize={pageSize} total={total} onPage={onPage} />
       </div>
     </div>
   );

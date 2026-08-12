@@ -37,6 +37,7 @@ export default function Home() {
       {/* Hero */}
       <section className="home-hero">
         <div className="home-hero-inner">
+          <span className="home-badge">Open Source &middot; Android SMS Gateway</span>
           <h1 className="home-hero-title">
             Turn Your Phone Into an
             <br />
@@ -49,9 +50,14 @@ export default function Home() {
             <button onClick={() => navigate("/login")} className="home-btn-cta">
               Start Sending Free
             </button>
-            <a               href="https://github.com/casuya-code/casuya-sms" target="_blank" rel="noreferrer" className="home-btn-ghost">
+            <a href="https://github.com/casuya-code/casuya-sms" target="_blank" rel="noreferrer" className="home-btn-ghost">
               View on GitHub
             </a>
+          </div>
+          <div className="home-hero-points">
+            <span>&#10003; No per-message fees</span>
+            <span>&#10003; Self-hosted data</span>
+            <span>&#10003; Setup in minutes</span>
           </div>
         </div>
       </section>
@@ -59,6 +65,7 @@ export default function Home() {
       {/* How It Works */}
       <section className="home-section home-section-white">
         <div className="home-container">
+          <p className="home-eyebrow">Get started in three steps</p>
           <h2 className="home-section-title">How It Works</h2>
           <div className="home-steps-grid">
             {STEPS.map((s) => (
@@ -75,6 +82,7 @@ export default function Home() {
       {/* Features */}
       <section className="home-section home-section-gray">
         <div className="home-container">
+          <p className="home-eyebrow">Everything included</p>
           <h2 className="home-section-title">Everything You Need</h2>
           <div className="home-features-grid">
             {FEATURES.map((f) => (

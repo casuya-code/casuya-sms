@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import TemplateEditor from "./TemplateEditor";
 import BulkSend from "./BulkSend";
@@ -7,7 +7,7 @@ const CATEGORY_ICONS = {
   general: "📝",
   academic: "📊",
   finance: "💰",
-  attendance: "👁️",
+  attendance: "📋",
   discipline: "⚠️",
   emergency: "🚨",
   events: "📅",
@@ -22,22 +22,25 @@ export default function TemplateList() {
   const [editing, setEditing] = useState(null);
   const [sending, setSending] = useState(null);
 
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
   const load = useCallback(async () => {
     try {
       const res = await api.get("/api/templates");
+      if (!mountedRef.current) return;
       setTemplates(res.data);
       setError("");
     } catch (e) {
+      if (!mountedRef.current) return;
       setError(e.response?.data?.error || "failed to load templates");
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    load().then(() => {});
-    return () => { cancelled = true; };
+    load();
   }, [load]);
 
   const remove = async (id, name) => {
@@ -51,18 +54,14 @@ export default function TemplateList() {
   };
 
   const handleSave = async (data) => {
-    try {
-      if (editing) {
-        await api.patch(`/api/templates/${editing.id}`, data);
-      } else {
-        await api.post("/api/templates", data);
-      }
-      setView("list");
-      setEditing(null);
-      load();
-    } catch (e) {
-      setError(e.response?.data?.error || "failed to save template");
+    if (editing) {
+      await api.patch(`/api/templates/${editing.id}`, data);
+    } else {
+      await api.post("/api/templates", data);
     }
+    setView("list");
+    setEditing(null);
+    load();
   };
 
   if (view === "editor") {
@@ -89,15 +88,6 @@ export default function TemplateList() {
     border: "1px solid #ddd",
     borderRadius: 8,
     padding: 16,
-  };
-
-  const gridCard = {
-    border: "1px solid #e0e0e0",
-    borderRadius: 8,
-    padding: 16,
-    background: "#fff",
-    cursor: "pointer",
-    transition: "box-shadow 0.15s, border-color 0.15s",
   };
 
   return (
@@ -143,9 +133,8 @@ export default function TemplateList() {
           {templates.map((t) => (
             <div
               key={t.id}
-              style={gridCard}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#1e88e5"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(30,136,229,0.15)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#e0e0e0"; e.currentTarget.style.boxShadow = "none"; }}
+              className="template-card"
+              onClick={() => { setEditing(t); setView("editor"); }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

@@ -12,6 +12,7 @@ import okhttp3.WebSocketListener
 
 class WebSocketClient(
     private val onSmsOrder: (smsLogId: String, to: String, message: String) -> Unit,
+    private val onSyncRequest: () -> Unit,
     private val onStateChange: (Boolean) -> Unit
 ) {
     private var socket: WebSocket? = null
@@ -65,12 +66,17 @@ class WebSocketClient(
     internal fun handleMessage(text: String) {
         try {
             val payload = org.json.JSONObject(text)
-            if (payload.getString("type") == "sms:send") {
-                onSmsOrder(
-                    payload.getString("sms_log_id"),
-                    payload.getString("to"),
-                    payload.getString("message")
-                )
+            when (payload.getString("type")) {
+                "sms:send" -> {
+                    onSmsOrder(
+                        payload.getString("sms_log_id"),
+                        payload.getString("to"),
+                        payload.getString("message")
+                    )
+                }
+                "sms:sync" -> {
+                    onSyncRequest()
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to parse WebSocket message: ${e.message}")

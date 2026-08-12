@@ -1,0 +1,71 @@
+/* ==================== DESIGN TOKENS ==================== */
+:root {
+  --primary: #1e88e5;
+  --primary-dark: #1976d2;
+  --primary-light: #42a5f5;
+  --primary-bg: #e3f2fd;
+  --primary-border: #cfe0f5;
+
+  --danger: #d32f2f;
+  --danger-bg: #ffebee;
+  --danger-border: #ef9a9a;
+
+  --success: #155724;
+  --success-bg: #d4edda;
+  --success-border: #a5d6a7;
+
+  --warning: #e65100;
+  --warning-bg: #fff3e0;
+  --warning-border: #ffcc80;
+
+  --text: #1a2332;
+  --text-muted: #6b7280;
+  --border: #e0e0e0;
+  --border-light: #ddd;
+  --surface: #fff;
+  --surface-muted: #f5f5f5;
+  --page-bg: #f5f5f5;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.hamburger-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--surface-muted);
+  border-radius: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  transition: background 0.15s;
+}
+
+.hamburger-btn:hover {
+  background: #e5e7eb;
+}
+
+.hamburger-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+

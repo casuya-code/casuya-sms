@@ -1,0 +1,273 @@
+
+/* ==================== DEVICES COMPONENT ==================== */
+.dev-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.dev-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  gap: 8px;
+}
+
+.dev-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.dev-count {
+  font-size: 13px;
+  color: #888;
+}
+
+.dev-error {
+  color: #d32f2f;
+  padding: 8px 12px;
+  background: #ffebee;
+  border-radius: 6px;
+  border: 1px solid #ef9a9a;
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.dev-success {
+  color: #155724;
+  padding: 8px 12px;
+  background: #d4edda;
+  border-radius: 6px;
+  border: 1px solid #a5d6a7;
+  margin: 0 0 12px;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.dev-register-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dev-input {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.dev-input:focus {
+  border-color: #1e88e5;
+}
+
+.dev-input-full {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dev-register-btn {
+  cursor: pointer;
+  padding: 8px 18px;
+  background: #1e88e5;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dev-register-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dev-empty {
+  color: #888;
+  text-align: center;
+  padding: 20px;
+}
+
+.dev-empty-box {
+  text-align: center;
+  padding: 30px;
+  color: #888;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.dev-empty-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.dev-empty-desc {
+  margin: 0;
+  font-size: 13px;
+}
+
+.dev-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dev-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dev-item:last-child {
+  border-bottom: none;
+}
+
+.dev-status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dev-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dev-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.dev-id {
+  font-size: 12px;
+  font-family: monospace;
+  color: #aaa;
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.dev-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.dev-btn {
+  cursor: pointer;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.dev-btn-primary {
+  background: #1e88e5;
+  color: #fff;
+  border: none;
+}
+
+.dev-btn-copy {
+  background: #f5f5f5;
+  color: #555;
+  border: 1px solid #ddd;
+}
+
+.dev-btn-copied {
+  background: #4caf50;
+  color: #fff;
+  border: 1px solid #4caf50;
+}
+
+.dev-btn-cancel {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+.dev-btn-delete {
+  color: #d32f2f;
+  background: none;
+  border: 1px solid #ef9a9a;
+}
+
+/* Devices mobile */
+@media (max-width: 768px) {
+  .dev-card {
+    padding: 12px !important;
+  }
+
+  .dev-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .dev-title {
+    font-size: 16px !important;
+  }
+
+  .dev-register-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dev-input {
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 14px !important;
+    padding: 10px 12px !important;
+  }
+
+  .dev-register-btn {
+    width: 100%;
+    padding: 10px !important;
+    font-size: 14px !important;
+  }
+
+  .dev-empty-box {
+    padding: 20px 16px !important;
+  }
+
+  .dev-item {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 0;
+  }
+
+  .dev-info {
+    flex: 1 1 calc(100% - 36px);
+    order: 1;
+  }
+
+  .dev-id {
+    font-size: 11px !important;
+  }
+
+  .dev-actions {
+    width: 100%;
+    order: 2;
+    gap: 6px;
+  }
+
+  .dev-btn {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+
+  .dev-success {
+    font-size: 13px !important;
+    word-break: break-all;
+  }
+}

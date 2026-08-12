@@ -50,8 +50,14 @@ app.use(cors({
   maxAge: 86400,
 }));
 
-// --- Body parsing with strict limits ---
-app.use(express.json({ limit: "64kb", type: ["application/json"] }));
+// --- Body parsing with strict limits (larger for message uploads) ---
+app.use((req, res, next) => {
+  const parser = express.json({
+    limit: req.path.startsWith("/api/messages") ? "1mb" : "64kb",
+    type: ["application/json"],
+  });
+  return parser(req, res, next);
+});
 
 // --- Global rate limiter (100 req/min per IP) ---
 const globalLimiter = rateLimit({
@@ -61,6 +67,7 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "too many requests, please try again later" },
   keyGenerator: ipKeyGenerator,
+  skip: (req) => req.path.startsWith("/api/messages"),
 });
 app.use(globalLimiter);
 
@@ -76,6 +83,7 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/devices", require("./routes/devices"));
+app.use("/api/messages", require("./routes/messages"));
 app.use("/api/apikeys", require("./routes/apikeys"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/templates", require("./routes/templates"));

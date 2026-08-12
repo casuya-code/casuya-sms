@@ -1,13 +1,27 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, getUser } from "../lib/api";
-import AdminSidebar from "../components/AdminSidebar";
+import Sidebar, { Icons } from "../components/Sidebar";
 import OverviewSection from "../components/admin/OverviewSection";
 import UsersSection from "../components/admin/UsersSection";
 import DevicesSection from "../components/admin/DevicesSection";
 import LogsSection from "../components/admin/LogsSection";
 
 const VALID_ADMIN_SECTIONS = ["overview", "users", "devices", "logs"];
+const PAGE_SIZE = 50;
+
+const ADMIN_NAV_ITEMS = [
+  { key: "overview", label: "Overview", icon: Icons.Overview },
+  { key: "users", label: "Users", icon: Icons.Users },
+  { key: "devices", label: "Devices", icon: Icons.Devices },
+  { key: "logs", label: "SMS Logs", icon: Icons.Logs },
+];
+
+const SECTION_ENDPOINTS = {
+  users: "/api/admin/users",
+  devices: "/api/admin/devices",
+  logs: "/api/admin/logs",
+};
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -17,59 +31,114 @@ export default function AdminPanel() {
   const [active, setActive] = useState(
     VALID_ADMIN_SECTIONS.includes(initialSection) ? initialSection : "overview"
   );
+  const [page, setPage] = useState({ users: 1, devices: 1, logs: 1 });
+  const [stats, setStats] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [devices, setDevices] = useState([]);
+  const [devicesTotal, setDevicesTotal] = useState(0);
+  const [logs, setLogs] = useState([]);
+  const [logsTotal, setLogsTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const mountedRef = useRef(true);
+  const pageRef = useRef(page);
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   const handleSectionChange = (section) => {
     setActive(section);
     setSearchParams({ section });
   };
-  const [stats, setStats] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [devices, setDevices] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const fetchSection = useCallback(async (name, pageNum) => {
+    const res = await api.get(SECTION_ENDPOINTS[name], {
+      params: { page: pageNum, limit: PAGE_SIZE },
+    });
+    return { rows: res.data.data || [], total: res.data.total || 0 };
+  }, []);
+
+  const load = useCallback(async ({ silent = false, pages } = {}) => {
+    const p = pages || pageRef.current;
+    if (!silent) setLoading(true);
     setError("");
     try {
       const [s, u, d, l] = await Promise.allSettled([
         api.get("/api/admin/stats"),
-        api.get("/api/admin/users"),
-        api.get("/api/admin/devices"),
-        api.get("/api/admin/logs"),
+        fetchSection("users", p.users),
+        fetchSection("devices", p.devices),
+        fetchSection("logs", p.logs),
       ]);
+      if (!mountedRef.current) return;
       if (s.status === "fulfilled") setStats(s.value.data);
-      if (u.status === "fulfilled") setUsers(u.value.data);
-      if (d.status === "fulfilled") setDevices(d.value.data);
-      if (l.status === "fulfilled") setLogs(l.value.data);
+      if (u.status === "fulfilled") {
+        setUsers(u.value.rows);
+        setUsersTotal(u.value.total);
+      }
+      if (d.status === "fulfilled") {
+        setDevices(d.value.rows);
+        setDevicesTotal(d.value.total);
+      }
+      if (l.status === "fulfilled") {
+        setLogs(l.value.rows);
+        setLogsTotal(l.value.total);
+      }
       const firstError = [s, u, d, l].find((r) => r.status === "rejected");
       if (firstError) {
-        setError(
-          firstError.reason?.response?.data?.error || "failed to load some admin data"
-        );
+        setError(firstError.reason?.response?.data?.error || "failed to load some admin data");
       }
     } catch (e) {
-      setError(e.response?.data?.error || "failed to load admin data");
+      if (mountedRef.current && e?.name !== "CanceledError") {
+        setError(e.response?.data?.error || "failed to load admin data");
+      }
     } finally {
-      setLoading(false);
+      if (!silent && mountedRef.current) setLoading(false);
     }
-  }, []);
+  }, [fetchSection]);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      await load();
-      if (cancelled) return;
-    })();
-    return () => { cancelled = true; };
+    load();
   }, [load]);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setSidebarOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const changePage = useCallback(async (name, newPage) => {
+    setPage((p) => ({ ...p, [name]: newPage }));
+    setError("");
+    try {
+      const res = await fetchSection(name, newPage);
+      if (!mountedRef.current) return;
+      if (name === "users") {
+        setUsers(res.rows);
+        setUsersTotal(res.total);
+      } else if (name === "devices") {
+        setDevices(res.rows);
+        setDevicesTotal(res.total);
+      } else {
+        setLogs(res.rows);
+        setLogsTotal(res.total);
+      }
+    } catch (e) {
+      if (mountedRef.current) {
+        setError(e.response?.data?.error || `failed to load ${name}`);
+      }
+    }
+  }, [fetchSection]);
 
   const toggleBan = async (userId, banned) => {
     try {
       await api.patch(`/api/admin/users/${userId}`, { banned: !banned });
-      load();
+      load({ silent: true });
     } catch (e) {
       setError(e.response?.data?.error || "failed to update user");
     }
@@ -78,7 +147,7 @@ export default function AdminPanel() {
   const setRole = async (userId, role) => {
     try {
       await api.patch(`/api/admin/users/${userId}`, { role });
-      load();
+      load({ silent: true });
     } catch (e) {
       setError(e.response?.data?.error || "failed to change role");
     }
@@ -88,7 +157,10 @@ export default function AdminPanel() {
     if (!confirm(`Permanently delete user "${email}"?`)) return;
     try {
       await api.delete(`/api/admin/users/${userId}`);
-      load();
+      const goBack = users.length === 1 && page.users > 1;
+      const nextPage = goBack ? page.users - 1 : page.users;
+      if (goBack) setPage((pg) => ({ ...pg, users: nextPage }));
+      load({ silent: true, pages: { ...page, users: nextPage } });
     } catch (e) {
       setError(e.response?.data?.error || "failed to delete user");
     }
@@ -96,21 +168,36 @@ export default function AdminPanel() {
 
   const counts = {
     overview: undefined,
-    users: users.length,
-    devices: devices.length,
-    logs: logs.length,
+    users: usersTotal,
+    devices: devicesTotal,
+    logs: logsTotal,
   };
+
+  const navItems = ADMIN_NAV_ITEMS.map((item) => ({
+    ...item,
+    count: counts[item.key],
+  }));
 
   return (
     <div style={{ display: "flex", fontFamily: "system-ui, sans-serif" }}>
-      <AdminSidebar
+      <Sidebar
         active={active}
         onSelect={handleSectionChange}
-        counts={counts}
         user={currentUser}
-        onBack={() => navigate("/dashboard")}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        ariaLabel="Admin navigation"
+        sidebarId="admin-sidebar"
+        headerSub="Admin Console"
+        headerClass="sidebar-header-admin"
+        avatarClass="sidebar-avatar-admin"
+        roleLabel="Administrator"
+        navItems={navItems}
+        footer={
+          <button onClick={() => navigate("/dashboard")} className="sidebar-logout">
+            <Icons.Back /> Back to Dashboard
+          </button>
+        }
       />
 
       <div style={{ flex: 1, minHeight: "100vh", background: "#f5f5f5" }}>
@@ -119,6 +206,9 @@ export default function AdminPanel() {
             <button
               className="hamburger-btn"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle navigation"
+              aria-expanded={sidebarOpen}
+              aria-controls="admin-sidebar"
             >
               {sidebarOpen ? "\u2715" : "\u2630"}
             </button>
@@ -130,7 +220,7 @@ export default function AdminPanel() {
             </div>
           </div>
           <button
-            onClick={load}
+            onClick={() => load()}
             disabled={loading}
             style={{
               padding: "8px 16px",
@@ -172,14 +262,34 @@ export default function AdminPanel() {
               {active === "users" && (
                 <UsersSection
                   users={users}
+                  total={usersTotal}
+                  page={page.users}
+                  pageSize={PAGE_SIZE}
+                  onPage={(p) => changePage("users", p)}
                   currentUser={currentUser}
                   onBan={toggleBan}
                   onDelete={deleteUser}
                   onRoleChange={setRole}
                 />
               )}
-              {active === "devices" && <DevicesSection devices={devices} />}
-              {active === "logs" && <LogsSection logs={logs} />}
+              {active === "devices" && (
+                <DevicesSection
+                  devices={devices}
+                  total={devicesTotal}
+                  page={page.devices}
+                  pageSize={PAGE_SIZE}
+                  onPage={(p) => changePage("devices", p)}
+                />
+              )}
+              {active === "logs" && (
+                <LogsSection
+                  logs={logs}
+                  total={logsTotal}
+                  page={page.logs}
+                  pageSize={PAGE_SIZE}
+                  onPage={(p) => changePage("logs", p)}
+                />
+              )}
             </>
           )}
         </div>

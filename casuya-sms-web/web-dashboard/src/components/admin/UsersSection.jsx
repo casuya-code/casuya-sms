@@ -1,24 +1,17 @@
 import { useState } from "react";
+import Pagination from "../Pagination";
 
-const td = {
-  padding: "12px 14px",
-  borderBottom: "1px solid #f0f0f0",
-  fontSize: 13,
-};
-
-const th = {
-  textAlign: "left",
-  padding: "12px 14px",
-  borderBottom: "2px solid #e0e0e0",
-  fontSize: 12,
-  fontWeight: 600,
-  color: "#666",
-  textTransform: "uppercase",
-  letterSpacing: "0.04em",
-  whiteSpace: "nowrap",
-};
-
-export default function UsersSection({ users, currentUser, onBan, onDelete, onRoleChange }) {
+export default function UsersSection({
+  users,
+  total,
+  page,
+  pageSize,
+  onPage,
+  currentUser,
+  onBan,
+  onDelete,
+  onRoleChange,
+}) {
   const [search, setSearch] = useState("");
 
   const filtered = users.filter(
@@ -31,9 +24,9 @@ export default function UsersSection({ users, currentUser, onBan, onDelete, onRo
     <div>
       <div className="flex-header" style={{ marginBottom: 16 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 18 }}>User Management</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#888" }}>
-            {users.length} registered users
+          <h2 className="section-title">User Management</h2>
+          <p className="section-sub">
+            {total} registered users
           </p>
         </div>
         <input
@@ -59,28 +52,23 @@ export default function UsersSection({ users, currentUser, onBan, onDelete, onRo
         }}
       >
         <div className="table-wrap">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="tbl">
             <thead>
               <tr>
-                <th style={th}>ID</th>
-                <th style={th}>Email</th>
-                <th style={th}>Role</th>
-                <th style={th}>Status</th>
-                <th style={th}>Joined</th>
-                <th style={th}>Actions</th>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((u) => (
-                <tr
-                  key={u.id}
-                  style={{ transition: "background 0.1s" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#fafafa")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <td style={td}>{u.id}</td>
-                  <td style={{ ...td, fontWeight: 500 }}>{u.email}</td>
-                  <td style={td}>
+                <tr key={u.id}>
+                  <td>{u.id}</td>
+                  <td style={{ fontWeight: 500 }}>{u.email}</td>
+                  <td>
                     <select
                       value={u.role}
                       onChange={(e) => onRoleChange(u.id, e.target.value)}
@@ -97,7 +85,7 @@ export default function UsersSection({ users, currentUser, onBan, onDelete, onRo
                       <option value="admin">admin</option>
                     </select>
                   </td>
-                  <td style={td}>
+                  <td>
                     <span
                       style={{
                         display: "inline-block",
@@ -112,10 +100,10 @@ export default function UsersSection({ users, currentUser, onBan, onDelete, onRo
                       {u.banned ? "Banned" : "Active"}
                     </span>
                   </td>
-                  <td style={{ ...td, whiteSpace: "nowrap" }}>
+                  <td style={{ whiteSpace: "nowrap" }}>
                     {new Date(u.created_at).toLocaleDateString()}
                   </td>
-                  <td style={td}>
+                  <td>
                     <div style={{ display: "flex", gap: 6 }}>
                       {u.id !== currentUser?.id && (
                         <>
@@ -159,10 +147,11 @@ export default function UsersSection({ users, currentUser, onBan, onDelete, onRo
           </table>
         </div>
         {filtered.length === 0 && (
-          <p style={{ color: "#888", textAlign: "center", padding: 24, margin: 0 }}>
+          <p className="table-empty">
             {search ? "No users match your search." : "No users found."}
           </p>
         )}
+        <Pagination page={page} pageSize={pageSize} total={total} onPage={onPage} />
       </div>
     </div>
   );

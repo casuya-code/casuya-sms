@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController, 
-                        startDestination = startDestination
+                        startDestination = startDestination,
                     ) {
                         composable("login") {
                             LoginScreen(
@@ -97,15 +97,19 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun arePermissionsGranted(): Boolean {
-        val sms = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+        val sendSms = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
         val receiveSms = ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
+        val readSms = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+        val phoneState = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
         val notif = if (Build.VERSION.SDK_INT >= 33) {
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
         } else {
             PackageManager.PERMISSION_GRANTED
         }
-        return (sms == PackageManager.PERMISSION_GRANTED &&
+        return (sendSms == PackageManager.PERMISSION_GRANTED &&
                 receiveSms == PackageManager.PERMISSION_GRANTED &&
+                readSms == PackageManager.PERMISSION_GRANTED &&
+                phoneState == PackageManager.PERMISSION_GRANTED &&
                 (notif == PackageManager.PERMISSION_GRANTED))
     }
 
@@ -113,7 +117,12 @@ class MainActivity : ComponentActivity() {
         if (arePermissionsGranted()) {
             startService()
         } else {
-            val perms = mutableListOf(Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS)
+            val perms = mutableListOf(
+                Manifest.permission.SEND_SMS,
+                Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.READ_SMS,
+                Manifest.permission.READ_PHONE_STATE
+            )
             if (Build.VERSION.SDK_INT >= 33) perms.add(Manifest.permission.POST_NOTIFICATIONS)
             permissionLauncher.launch(perms.toTypedArray())
         }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Pagination from "../Pagination";
 
 const STATUS_STYLE = {
   queued: { bg: "#fff3cd", color: "#856404" },
@@ -6,25 +7,7 @@ const STATUS_STYLE = {
   failed: { bg: "#f8d7da", color: "#721c24" },
 };
 
-const td = {
-  padding: "12px 14px",
-  borderBottom: "1px solid #f0f0f0",
-  fontSize: 13,
-};
-
-const th = {
-  textAlign: "left",
-  padding: "12px 14px",
-  borderBottom: "2px solid #e0e0e0",
-  fontSize: 12,
-  fontWeight: 600,
-  color: "#666",
-  textTransform: "uppercase",
-  letterSpacing: "0.04em",
-  whiteSpace: "nowrap",
-};
-
-export default function LogsSection({ logs }) {
+export default function LogsSection({ logs, total, page, pageSize, onPage }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -51,13 +34,13 @@ export default function LogsSection({ logs }) {
         style={{ marginBottom: 16, flexWrap: "wrap", gap: 12 }}
       >
         <div>
-          <h2 style={{ margin: 0, fontSize: 18 }}>SMS Logs</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#888" }}>
-            {logs.length} total messages
+          <h2 className="section-title">SMS Logs</h2>
+          <p className="section-sub">
+            {total} total messages
           </p>
         </div>
         <div className="filter-bar">
-          <div style={{ display: "flex", gap: 4 }}>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {["all", "queued", "delivered", "failed"].map((s) => (
               <button
                 key={s}
@@ -102,34 +85,29 @@ export default function LogsSection({ logs }) {
         }}
       >
         <div className="table-wrap">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="tbl">
             <thead>
               <tr>
-                <th style={th}>#</th>
-                <th style={th}>To</th>
-                <th style={th}>Message</th>
-                <th style={th}>Status</th>
-                <th style={th}>User</th>
-                <th style={th}>Device</th>
-                <th style={th}>Time</th>
+                <th>#</th>
+                <th>To</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>User</th>
+                <th>Device</th>
+                <th>Time</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((log) => {
                 const s = STATUS_STYLE[log.status] || STATUS_STYLE.queued;
                 return (
-                  <tr
-                    key={log.id}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#fafafa")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td style={td}>{log.id}</td>
-                    <td style={{ ...td, whiteSpace: "nowrap", fontWeight: 500 }}>
+                  <tr key={log.id}>
+                    <td>{log.id}</td>
+                    <td style={{ whiteSpace: "nowrap", fontWeight: 500 }}>
                       {log.to_number}
                     </td>
                     <td
                       style={{
-                        ...td,
                         maxWidth: 240,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -140,7 +118,7 @@ export default function LogsSection({ logs }) {
                     >
                       {log.message}
                     </td>
-                    <td style={td}>
+                    <td>
                       <span
                         style={{
                           display: "inline-block",
@@ -155,11 +133,11 @@ export default function LogsSection({ logs }) {
                         {log.status}
                       </span>
                     </td>
-                    <td style={td}>{log.user_email}</td>
-                    <td style={{ ...td, fontFamily: "monospace", fontSize: 12, color: "#888" }}>
+                    <td>{log.user_email}</td>
+                    <td style={{ fontFamily: "monospace", fontSize: 12, color: "#888" }}>
                       {log.device_id ? log.device_id.slice(0, 8) + "..." : "—"}
                     </td>
-                    <td style={{ ...td, whiteSpace: "nowrap", color: "#888" }}>
+                    <td style={{ whiteSpace: "nowrap", color: "#888" }}>
                       {new Date(log.created_at).toLocaleString()}
                     </td>
                   </tr>
@@ -169,12 +147,13 @@ export default function LogsSection({ logs }) {
           </table>
         </div>
         {filtered.length === 0 && (
-          <p style={{ color: "#888", textAlign: "center", padding: 24, margin: 0 }}>
+          <p className="table-empty">
             {search || statusFilter !== "all"
               ? "No logs match your filters."
               : "No SMS logs yet."}
           </p>
         )}
+        <Pagination page={page} pageSize={pageSize} total={total} onPage={onPage} />
       </div>
     </div>
   );
