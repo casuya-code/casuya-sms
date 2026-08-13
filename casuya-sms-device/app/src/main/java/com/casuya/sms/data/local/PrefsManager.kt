@@ -4,11 +4,14 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import java.security.SecureRandom
+import java.util.UUID
 
 object PrefsManager {
     private const val PREF_NAME = "casuya_secure_store"
     private const val KEY_TOKEN = "jwt_token"
     private const val KEY_DEVICE_ID = "device_id"
+    private const val KEY_PAIRING_KEY = "pairing_key"
     private const val KEY_EMAIL = "user_email"
     private const val KEY_GATEWAY_ENABLED = "gateway_enabled"
     private const val KEY_STICKY_NOTIF = "sticky_notif"
@@ -50,6 +53,20 @@ object PrefsManager {
 
     fun saveDeviceId(deviceId: String) = prefs?.edit()?.putString(KEY_DEVICE_ID, deviceId)?.apply()
     fun getDeviceId(): String? = prefs?.getString(KEY_DEVICE_ID, null)
+
+    fun savePairingKey(key: String) = prefs?.edit()?.putString(KEY_PAIRING_KEY, key)?.apply()
+    fun getPairingKey(): String? = prefs?.getString(KEY_PAIRING_KEY, null)
+
+    fun ensureDeviceIdentity() {
+        if (getDeviceId() == null) saveDeviceId(UUID.randomUUID().toString())
+        if (getPairingKey() == null) savePairingKey(generatePairingKey())
+    }
+
+    private fun generatePairingKey(): String {
+        val bytes = ByteArray(32)
+        SecureRandom().nextBytes(bytes)
+        return "casuya_dv_" + bytes.joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    }
 
     fun saveEmail(email: String) = prefs?.edit()?.putString(KEY_EMAIL, email)?.apply()
     fun getEmail(): String? = prefs?.getString(KEY_EMAIL, null)

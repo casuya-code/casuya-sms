@@ -9,7 +9,7 @@ const pool = new Pool({
   ssl,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 30000,
 });
 
 pool.on("error", (err) => {

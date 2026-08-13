@@ -1,18 +1,9 @@
 const { WebSocketServer } = require("ws");
-const jwt = require("jsonwebtoken");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
 const { pool } = require("../config/database");
 
 const deviceSockets = new Map();
-
-function verifyDeviceToken(token) {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET);
-  } catch {
-    return null;
-  }
-}
 
 function init(server) {
   const wss = new WebSocketServer({
@@ -22,31 +13,25 @@ function init(server) {
       try {
         const url = new URL(info.req.url, `http://${info.req.headers.host}`);
         const deviceId = url.searchParams.get("deviceId");
-        const token = url.searchParams.get("token");
+        const apiKey = url.searchParams.get("apiKey");
 
         if (!deviceId) {
           callback(false, 401, "deviceId required");
           return;
         }
-        if (!token) {
-          callback(false, 401, "token required for WebSocket");
+        if (!apiKey) {
+          callback(false, 401, "apiKey required for WebSocket");
           return;
         }
 
-        const payload = verifyDeviceToken(token);
-        if (!payload) {
-          callback(false, 401, "invalid or expired token");
-          return;
-        }
-
-        // Verify device ownership - prevent impersonation
-        const device = await Device.findByUserAndId(payload.sub, deviceId);
+        // Authenticate the device with its pairing credentials
+        const device = await Device.findByDeviceAndKey(deviceId, Device.hashKey(apiKey));
         if (!device) {
-          callback(false, 403, "device not found or not owned by you");
+          callback(false, 403, "invalid device id or api key");
           return;
         }
 
-        info.req.userId = payload.sub;
+        info.req.device = device;
         callback(true);
       } catch (err) {
         console.error("WebSocket verifyClient error:", err.message);
@@ -77,7 +62,7 @@ function init(server) {
   wss.on("connection", (socket, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const deviceId = url.searchParams.get("deviceId");
-    const userId = req.userId;
+    const device = req.device;
 
     socket.isAlive = true;
     socket.deviceId = deviceId;
@@ -92,14 +77,14 @@ function init(server) {
       deviceSockets.delete(deviceId);
     }
 
-    Device.setStatus(deviceId, "online")
+    Device.markConnected(deviceId)
       .then((result) => {
         if (result.rowCount === 0) {
           socket.close(1008, "unknown device");
           return;
         }
         deviceSockets.set(deviceId, socket);
-        console.log(`device connected: ${deviceId} (user: ${userId})`);
+        console.log(`device connected: ${deviceId} (user: ${device.user_id})`);
       })
       .catch((err) => {
         console.error("device online update failed:", err.message);

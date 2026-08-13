@@ -63,9 +63,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 16px;
-  letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+
+.auth-brand-mark svg {
+  width: 24px;
+  height: 24px;
 }
 
 .auth-brand-name {
@@ -125,9 +128,14 @@
 .auth-main {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
+}
+
+.auth-mobile-bar {
+  display: none;
 }
 
 .auth-card {
@@ -234,9 +242,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .auth-eye:hover {
@@ -245,6 +254,52 @@
 }
 
 .auth-hint {
+  font-size: 12px;
+  color: #667085;
+}
+
+.auth-error-line {
+  font-size: 12px;
+  color: #b42318;
+  margin: 0;
+}
+
+.auth-strength {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-strength-bars {
+  display: flex;
+  gap: 4px;
+}
+
+.auth-strength-bars span {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: #e4e7ec;
+  transition: background 0.2s;
+}
+
+.auth-strength-bars span.strength-weak {
+  background: #f97066;
+}
+
+.auth-strength-bars span.strength-fair {
+  background: #fdb022;
+}
+
+.auth-strength-bars span.strength-good {
+  background: #fdb022;
+}
+
+.auth-strength-bars span.strength-strong {
+  background: #12b76a;
+}
+
+.auth-strength-label {
   font-size: 12px;
   color: #667085;
 }
@@ -271,6 +326,26 @@
   cursor: pointer;
   transition: background 0.15s, transform 0.05s;
   margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: auth-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .auth-submit:hover:not(:disabled) {
@@ -320,19 +395,6 @@
 
 .auth-switch:hover {
   background: #e6eef9;
-}
-
-.auth-back {
-  display: block;
-  text-align: center;
-  margin-top: 16px;
-  font-size: 13px;
-  color: #667085;
-  text-decoration: none;
-}
-
-.auth-back:hover {
-  color: #1e88e5;
 }
 
 .auth-status-icon {
@@ -390,9 +452,28 @@
 .auth-eye:focus-visible,
 .auth-submit:focus-visible,
 .auth-switch:focus-visible,
-.auth-inline-link:focus-visible {
+.auth-inline-link:focus-visible,
+.auth-back:focus-visible {
   outline: 2px solid #1e88e5;
   outline-offset: 2px;
+}
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 16px auto 0;
+  font-size: 13px;
+  color: #667085;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.auth-back:hover {
+  color: #1e88e5;
 }
 
 @media (max-width: 900px) {
@@ -401,6 +482,94 @@
   }
 
   .auth-main {
-    padding: 32px 16px;
+    padding: 32px 20px;
+  }
+
+  .auth-mobile-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 28px;
+  }
+
+  .auth-brand-mark-mobile {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    box-shadow: 0 1px 3px rgba(13, 71, 161, 0.18);
+  }
+
+  .auth-brand-mark-mobile svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .auth-mobile-bar .auth-brand-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1a2332;
+    letter-spacing: -0.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-main {
+    padding: 24px 16px;
+  }
+
+  .auth-mobile-bar {
+    margin-bottom: 22px;
+  }
+
+  .auth-title {
+    font-size: 24px;
+  }
+
+  .auth-sub {
+    font-size: 14px;
+    margin-bottom: 22px;
+  }
+
+  .auth-form {
+    gap: 16px;
+  }
+
+  .auth-input {
+    font-size: 16px;
+    padding: 13px 40px 13px 14px;
+  }
+
+  .auth-input-pr {
+    padding-right: 46px;
+  }
+
+  .auth-submit {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .auth-switch {
+    padding: 13px;
+    font-size: 15px;
+  }
+
+  .auth-inline-link,
+  .auth-back,
+  .auth-hint,
+  .auth-error-line {
+    font-size: 13px;
+  }
+}
+
+@media (max-height: 700px) {
+  .auth-main {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .auth-mobile-bar {
+    margin-bottom: 18px;
   }
 }

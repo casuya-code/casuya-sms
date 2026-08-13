@@ -43,6 +43,12 @@ export default function TemplateList() {
     load();
   }, [load]);
 
+  const retry = () => {
+    setLoading(true);
+    setError("");
+    load();
+  };
+
   const remove = async (id, name) => {
     if (!confirm(`Delete template "${name}"?`)) return;
     try {
@@ -114,6 +120,12 @@ export default function TemplateList() {
       {error && (
         <p style={{ color: "#d32f2f", padding: "8px 12px", background: "#ffebee", borderRadius: 6, border: "1px solid #ef9a9a", margin: "0 0 12px", fontSize: 14 }}>
           {error}
+          <button
+            onClick={retry}
+            style={{ marginLeft: 10, cursor: "pointer", padding: "2px 10px", fontSize: 12, color: "#d32f2f", background: "#fff", border: "1px solid #ef9a9a", borderRadius: 4 }}
+          >
+            Retry
+          </button>
         </p>
       )}
 

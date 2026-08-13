@@ -5,6 +5,8 @@ export default function DeviceList() {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [newDeviceId, setNewDeviceId] = useState("");
+  const [newApiKey, setNewApiKey] = useState("");
   const [newName, setNewName] = useState("");
   const [registering, setRegistering] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -28,18 +30,22 @@ export default function DeviceList() {
     load();
   }, [load]);
 
-  const register = async () => {
+  const link = async () => {
     setRegistering(true);
     setError("");
     try {
       const res = await api.post("/api/devices/register", {
+        device_id: newDeviceId.trim(),
+        api_key: newApiKey.trim(),
         device_name: newName.trim() || "android",
       });
-      setResult(`Device registered! ID: ${res.data.deviceId}`);
+      setResult(`Device linked! ${res.data.device_name || "android"} (${res.data.deviceId})`);
+      setNewDeviceId("");
+      setNewApiKey("");
       setNewName("");
       load();
     } catch (e) {
-      setError(e.response?.data?.error || "failed to register device");
+      setError(e.response?.data?.error || "failed to link device");
     } finally {
       setRegistering(false);
     }
@@ -92,23 +98,47 @@ export default function DeviceList() {
       {error && <p className="dev-error">{error}</p>}
       {result && <p className="dev-success">{result}</p>}
 
-      <div className="dev-register-row">
-        <input
-          type="text"
-          placeholder="Device name (optional)"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && register()}
-          className="dev-input"
-          disabled={registering}
-        />
-        <button
-          onClick={register}
-          disabled={registering}
-          className="dev-register-btn"
-        >
-          {registering ? "Registering..." : "Register"}
-        </button>
+      <div className="dev-link-box">
+        <div className="dev-link-row">
+          <input
+            type="text"
+            placeholder="Device ID (from app)"
+            value={newDeviceId}
+            onChange={(e) => setNewDeviceId(e.target.value)}
+            className="dev-input dev-input-full"
+            disabled={registering}
+            autoComplete="off"
+          />
+        </div>
+        <div className="dev-link-row">
+          <input
+            type="text"
+            placeholder="API Key (from app)"
+            value={newApiKey}
+            onChange={(e) => setNewApiKey(e.target.value)}
+            className="dev-input dev-input-full"
+            disabled={registering}
+            autoComplete="off"
+          />
+        </div>
+        <div className="dev-link-row">
+          <input
+            type="text"
+            placeholder="Device name (optional)"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && link()}
+            className="dev-input dev-input-full"
+            disabled={registering}
+          />
+          <button
+            onClick={link}
+            disabled={registering || !newDeviceId.trim() || !newApiKey.trim()}
+            className="dev-register-btn"
+          >
+            {registering ? "Linking..." : "Link Device"}
+          </button>
+        </div>
       </div>
 
       {loading && (
@@ -117,9 +147,9 @@ export default function DeviceList() {
 
       {!loading && devices.length === 0 && (
         <div className="dev-empty-box">
-          <p className="dev-empty-title">No devices registered yet</p>
+          <p className="dev-empty-title">No devices linked yet</p>
           <p className="dev-empty-desc">
-            Register one above, then connect your Android device with the same device ID.
+            Open the Casuya app on your Android phone, copy its Device ID and API Key, then paste them above.
           </p>
         </div>
       )}

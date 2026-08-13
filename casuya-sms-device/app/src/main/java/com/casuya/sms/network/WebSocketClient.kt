@@ -24,8 +24,8 @@ class WebSocketClient(
             onStateChange(false)
             return
         }
-        val token = PrefsManager.getToken() ?: run {
-            Log.e(TAG, "No JWT token available, cannot connect")
+        val apiKey = PrefsManager.getPairingKey() ?: run {
+            Log.e(TAG, "No pairing key available, cannot connect")
             onStateChange(false)
             return
         }
@@ -34,7 +34,7 @@ class WebSocketClient(
         val url = baseUrl
             .replace("http://", "ws://")
             .replace("https://", "wss://") +
-            "/?deviceId=$deviceId&token=$token"
+            "/?deviceId=$deviceId&apiKey=$apiKey"
 
         Log.d(TAG, "Connecting to $url")
 

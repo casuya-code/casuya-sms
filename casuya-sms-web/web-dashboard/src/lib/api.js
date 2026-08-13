@@ -5,7 +5,7 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
 export const TOKEN_KEY = "casuya_token";
 export const USER_KEY = "casuya_user";
 
-export const api = axios.create({ baseURL: API_URL });
+export const api = axios.create({ baseURL: API_URL, timeout: 20000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY);

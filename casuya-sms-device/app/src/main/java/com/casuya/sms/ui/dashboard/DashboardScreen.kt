@@ -271,17 +271,28 @@ fun DashboardScreen(onLogout: () -> Unit) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text("Device Info", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                            TextButton(onClick = { 
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("Device ID", PrefsManager.getDeviceId() ?: "")
-                                clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "Device ID copied", Toast.LENGTH_SHORT).show()
-                            }) {
-                                Text("Copy ID", style = MaterialTheme.typography.labelSmall)
+                            Row {
+                                TextButton(onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("Device ID", PrefsManager.getDeviceId() ?: "")
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "Device ID copied", Toast.LENGTH_SHORT).show()
+                                }) {
+                                    Text("Copy ID", style = MaterialTheme.typography.labelSmall)
+                                }
+                                TextButton(onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("API Key", PrefsManager.getPairingKey() ?: "")
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "API Key copied", Toast.LENGTH_SHORT).show()
+                                }) {
+                                    Text("Copy Key", style = MaterialTheme.typography.labelSmall)
+                                }
                             }
                         }
                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         DetailRow("ID", PrefsManager.getDeviceId() ?: "N/A")
+                        DetailRow("API Key", PrefsManager.getPairingKey() ?: "N/A")
                         DetailRow("User", PrefsManager.getEmail() ?: "Unknown")
                     }
                 }

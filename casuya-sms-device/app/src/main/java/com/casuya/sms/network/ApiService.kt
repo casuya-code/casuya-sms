@@ -1,6 +1,5 @@
 package com.casuya.sms.network
 
-import com.casuya.sms.data.models.DeviceRegisterRequest
 import com.casuya.sms.data.models.LoginRequest
 import com.casuya.sms.data.models.LoginResponse
 import retrofit2.Response
@@ -16,9 +15,6 @@ interface ApiService {
 
     @POST("api/auth/forgot-password")
     suspend fun forgotPassword(@Body body: ForgotPasswordRequest): Response<Unit>
-
-    @POST("api/devices/register")
-    suspend fun registerDevice(@Body body: DeviceRegisterRequest): Response<RegisterDeviceResponse>
 
     @POST("api/messages/received")
     suspend fun reportReceivedSms(@Body body: ReceivedSmsRequest): Response<Unit>
@@ -52,4 +48,3 @@ data class ReceivedBatchRequest(
 
 data class RegisterRequest(val name: String, val email: String, val password: String)
 data class ForgotPasswordRequest(val email: String)
-data class RegisterDeviceResponse(val deviceId: String)

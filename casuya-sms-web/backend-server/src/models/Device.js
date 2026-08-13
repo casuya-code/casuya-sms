@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const { query } = require("../config/database");
 
 async function createTable() {
@@ -7,6 +8,8 @@ async function createTable() {
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
       device_name TEXT NOT NULL DEFAULT 'android',
       status TEXT NOT NULL DEFAULT 'offline',
+      pairing_key_hash TEXT,
+      first_connected_at TIMESTAMPTZ,
       battery_level INTEGER,
       is_charging BOOLEAN DEFAULT false,
       signal_strength TEXT,
@@ -14,21 +17,49 @@ async function createTable() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+  await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS pairing_key_hash TEXT");
+  await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS first_connected_at TIMESTAMPTZ");
   await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS battery_level INTEGER");
   await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS is_charging BOOLEAN DEFAULT false");
   await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS signal_strength TEXT");
   await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ");
 }
 
-async function register(user_id, deviceId, device_name) {
+function hashKey(raw) {
+  return crypto.createHash("sha256").update(raw).digest("hex");
+}
+
+async function link(user_id, deviceId, pairingKeyHash, device_name) {
   const { rows } = await query(
-    `INSERT INTO devices (id, user_id, device_name)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (id) DO UPDATE SET device_name = $3, status = 'offline'
+    `INSERT INTO devices (id, user_id, device_name, pairing_key_hash)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (id) DO UPDATE SET
+       user_id = EXCLUDED.user_id,
+       device_name = EXCLUDED.device_name,
+       pairing_key_hash = EXCLUDED.pairing_key_hash,
+       status = 'offline',
+       first_connected_at = NULL
      RETURNING *`,
-    [deviceId, user_id, device_name]
+    [deviceId, user_id, device_name, pairingKeyHash]
   );
   return rows[0];
+}
+
+async function findByDeviceAndKey(deviceId, pairingKeyHash) {
+  const { rows } = await query(
+    "SELECT * FROM devices WHERE id = $1 AND pairing_key_hash = $2",
+    [deviceId, pairingKeyHash]
+  );
+  return rows[0] || null;
+}
+
+async function markConnected(deviceId) {
+  return query(
+    `UPDATE devices
+     SET status = 'online', first_connected_at = COALESCE(first_connected_at, NOW())
+     WHERE id = $1`,
+    [deviceId]
+  );
 }
 
 async function listByUser(user_id) {
@@ -85,9 +116,21 @@ async function countOnline() {
   return rows[0].count;
 }
 
+async function removeUnlinked(graceSeconds) {
+  return query(
+    `DELETE FROM devices
+     WHERE pairing_key_hash IS NULL
+        OR (first_connected_at IS NULL AND created_at < NOW() - make_interval(secs => $1))`,
+    [graceSeconds]
+  );
+}
+
 module.exports = {
   createTable,
-  register,
+  hashKey,
+  link,
+  findByDeviceAndKey,
+  markConnected,
   listByUser,
   findByUserAndId,
   updateName,
@@ -95,4 +138,5 @@ module.exports = {
   updateHeartbeat,
   remove,
   countOnline,
+  removeUnlinked,
 };

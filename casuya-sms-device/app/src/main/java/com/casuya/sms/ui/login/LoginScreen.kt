@@ -12,7 +12,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.casuya.sms.data.local.PrefsManager
-import com.casuya.sms.data.models.DeviceRegisterRequest
 import com.casuya.sms.data.models.LoginRequest
 import com.casuya.sms.network.ApiClient
 import kotlinx.coroutines.launch
@@ -66,18 +65,7 @@ fun LoginScreen(
             }
             PrefsManager.saveToken(loginBody.token)
             PrefsManager.saveEmail(trimmedEmail)
-
-            if (PrefsManager.getDeviceId() == null) {
-                val register =
-                    ApiClient.apiService.registerDevice(DeviceRegisterRequest("android"))
-                val registerBody = register.body()
-                if ((register.isSuccessful && registerBody != null)) {
-                    PrefsManager.saveDeviceId(registerBody.deviceId)
-                } else {
-                    error = "Device register failed: ${register.code()}"
-                    return
-                }
-            }
+            PrefsManager.ensureDeviceIdentity()
             onLoggedIn()
         } catch (e: Exception) {
             error = e.message ?: "Network error"

@@ -60,6 +60,22 @@ async function seedAdmin() {
 }
 
 const PORT = process.env.PORT || 8081;
+
+const DEVICE_GRACE_SECONDS = Number(process.env.DEVICE_GRACE_SECONDS) || 3600;
+
+function startDeviceCleanup() {
+  const run = async () => {
+    try {
+      const { rowCount } = await require("./models/Device").removeUnlinked(DEVICE_GRACE_SECONDS);
+      if (rowCount > 0) console.log(`device cleanup: removed ${rowCount} unlinked device(s)`);
+    } catch (err) {
+      console.error("device cleanup failed:", err.message);
+    }
+  };
+  run();
+  setInterval(run, 5 * 60 * 1000);
+}
+
 server.listen(PORT, async () => {
   try {
     await require("./models/User").createTable();
@@ -72,6 +88,7 @@ server.listen(PORT, async () => {
       require("./models/Message").createTable(),
     ]);
     await seedAdmin();
+    startDeviceCleanup();
     console.log(`casuya-sms backend on :${PORT} [${process.env.NODE_ENV || "development"}]`);
   } catch (err) {
     console.error("startup failed:", err.message);
