@@ -41,11 +41,19 @@ const pool = new Pool({
   max: Number(process.env.PG_POOL_MAX) || 50,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 30000,
+  statement_timeout: 10000,
 });
 
 pool.on("error", (err) => {
   console.error("Unexpected database pool error:", err.message);
 });
+
+const KEEPALIVE_MS = 25000;
+setInterval(() => {
+  pool.query("SELECT 1").catch((err) => {
+    console.error("DB keepalive ping failed:", err.message);
+  });
+}, KEEPALIVE_MS).unref();
 
 module.exports = {
   pool,
