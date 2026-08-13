@@ -208,7 +208,7 @@
     min-width: 0;
   }
 
-.footer-bottom {
+  .footer-bottom {
     flex-direction: column;
     gap: 12px;
     text-align: center;
