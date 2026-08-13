@@ -1,6 +1,41 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
 
+function fmtDate(value) {
+  if (!value) return null;
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return null;
+  }
+}
+
+const GUIDE_STEPS = [
+  {
+    title: "Install & sign in",
+    body: "Install the Casuya SMS app on your Android phone and log in to your account.",
+  },
+  {
+    title: "Copy your credentials",
+    body: "On the app's Home screen, tap Copy Device ID and Copy API Key.",
+  },
+  {
+    title: "Paste below & Link",
+    body: "Paste both values into the boxes and click Link Device.",
+  },
+  {
+    title: "Go online",
+    body: "Keep the app open. It connects automatically within a few seconds and turns green.",
+  },
+];
+
 export default function DeviceList() {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +74,9 @@ export default function DeviceList() {
         api_key: newApiKey.trim(),
         device_name: newName.trim() || "android",
       });
-      setResult(`Device linked! ${res.data.device_name || "android"} (${res.data.deviceId})`);
+      setResult(
+        `Device linked! ${res.data.device_name || "android"} will go online once the app connects.`
+      );
       setNewDeviceId("");
       setNewApiKey("");
       setNewName("");
@@ -99,6 +136,17 @@ export default function DeviceList() {
       {result && <p className="dev-success">{result}</p>}
 
       <div className="dev-link-box">
+        <div className="dev-guide-title">Pair a new device</div>
+        <ol className="dev-guide">
+          {GUIDE_STEPS.map((step, i) => (
+            <li key={i} className="dev-guide-step">
+              <span className="dev-guide-num">{i + 1}</span>
+              <span className="dev-guide-text">
+                <strong>{step.title}:</strong> {step.body}
+              </span>
+            </li>
+          ))}
+        </ol>
         <div className="dev-link-row">
           <input
             type="text"
@@ -149,7 +197,8 @@ export default function DeviceList() {
         <div className="dev-empty-box">
           <p className="dev-empty-title">No devices linked yet</p>
           <p className="dev-empty-desc">
-            Open the Casuya app on your Android phone, copy its Device ID and API Key, then paste them above.
+            Follow the steps above to pair your Android phone. A linked device that never
+            connects is removed automatically after 1 hour.
           </p>
         </div>
       )}
@@ -159,6 +208,9 @@ export default function DeviceList() {
           {devices.map((d) => {
             const isOnline = d.status === "online";
             const isEditing = editingId === d.id;
+            const neverConnected = !d.first_connected_at;
+            const lastSeen = fmtDate(d.last_heartbeat_at);
+            const firstConnected = fmtDate(d.first_connected_at);
             return (
               <li key={d.id} className="dev-item">
                 <span
@@ -185,6 +237,28 @@ export default function DeviceList() {
                     <>
                       <div className="dev-name">{d.device_name || "Unnamed Device"}</div>
                       <div className="dev-id" title={d.id}>{d.id}</div>
+                      <div className="dev-health">
+                        {typeof d.battery_level === "number" && (
+                          <span className="dev-health-item">
+                            Battery {d.battery_level}%{d.is_charging ? " (charging)" : ""}
+                          </span>
+                        )}
+                        {d.signal_strength && (
+                          <span className="dev-health-item">Signal {d.signal_strength}</span>
+                        )}
+                        {isOnline && firstConnected && (
+                          <span className="dev-health-item">Connected {firstConnected}</span>
+                        )}
+                        <span className="dev-health-item">
+                          {isOnline ? `Last seen ${lastSeen || "just now"}` : lastSeen ? `Last seen ${lastSeen}` : "Never seen"}
+                        </span>
+                      </div>
+                      {neverConnected && (
+                        <div className="dev-warn">
+                          Linked but never connected &mdash; removed automatically after 1 hour.
+                          Open the app to connect.
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
