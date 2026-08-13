@@ -262,7 +262,7 @@ export default function BulkSend({ template, standalone, onDone, onBack }) {
 
       {standalone && !apiKey && (
         <div style={{ padding: 12, background: "#fff3cd", border: "1px solid #ffc107", borderRadius: 6, marginBottom: 12, fontSize: 14 }}>
-          You need an API key. Generate one in the <strong>API Keys</strong> section first.
+          You need an API key. Generate one in the <strong>Developer Keys</strong> section first.
         </div>
       )}
 

@@ -32,7 +32,7 @@ export default function SendSmsPanel() {
 
   const send = async () => {
     if (!apiKey) {
-      setError("No API key found. Generate one in the API Keys section first.");
+      setError("No API key found. Generate one in the Developer Keys section first.");
       return;
     }
     setLoading(true);
@@ -108,7 +108,7 @@ export default function SendSmsPanel() {
 
       {!apiKey && (
         <div style={{ padding: 12, background: "#fff3cd", border: "1px solid #ffc107", borderRadius: 6, marginBottom: 12, fontSize: 14 }}>
-          You need an API key to send SMS. Generate one in the <strong>API Keys</strong> section above.
+          You need an API key to send SMS. Generate one in the <strong>Developer Keys</strong> section above.
         </div>
       )}
 

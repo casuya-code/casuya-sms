@@ -98,7 +98,7 @@ export default function Footer() {
                 {SEND}Send SMS
               </a>
               <Link to="/dashboard?section=apikeys" className="footer-link">
-                {KEY}API Keys
+                {KEY}Developer Keys
               </Link>
             </div>
 

@@ -16,7 +16,7 @@ const PAGE_TITLES = {
   templates: "SMS Templates",
   messages: "All Messages",
   logs: "SMS Logs",
-  apikeys: "API Keys",
+  apikeys: "Developer Keys",
 };
 
 const USER_NAV_ITEMS = [
@@ -25,7 +25,7 @@ const USER_NAV_ITEMS = [
   { key: "templates", label: "Templates", icon: Icons.Templates },
   { key: "messages", label: "All Messages", icon: Icons.Messages },
   { key: "logs", label: "SMS Logs", icon: Icons.Logs },
-  { key: "apikeys", label: "API Keys", icon: Icons.ApiKeys },
+  { key: "apikeys", label: "Developer Keys", icon: Icons.ApiKeys },
 ];
 
 export default function Dashboard() {

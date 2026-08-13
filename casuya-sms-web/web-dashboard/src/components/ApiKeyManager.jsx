@@ -92,7 +92,7 @@ export default function ApiKeyManager() {
 
   return (
     <section style={card}>
-      <h2 style={{ marginTop: 0 }}>API Keys</h2>
+      <h2 style={{ marginTop: 0 }}>Developer Keys</h2>
       <p style={{ margin: "0 0 12px", fontSize: 14, color: "#555" }}>
 Generate a key, then use it with <code>POST /api/v1/send</code> and header{" "}
           <code>X-API-KEY</code> to send SMS programmatically.
