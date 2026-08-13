@@ -20,11 +20,11 @@ function fmtDate(value) {
 const GUIDE_STEPS = [
   {
     title: "Install & sign in",
-    body: "Install the Casuya SMS app on your Android phone and log in to your account.",
+    body: "Install the Casuya SMS Android app and log in to your account.",
   },
   {
     title: "Copy your credentials",
-    body: "On the app's Home screen, tap Copy Device ID and Copy API Key.",
+    body: "In the app's Device Info section, tap Copy ID and Copy Key.",
   },
   {
     title: "Paste below & Link",
@@ -150,7 +150,7 @@ export default function DeviceList() {
         <div className="dev-link-row">
           <input
             type="text"
-            placeholder="Device ID (from app)"
+            placeholder="Device ID (from app's Copy ID)"
             value={newDeviceId}
             onChange={(e) => setNewDeviceId(e.target.value)}
             className="dev-input dev-input-full"
@@ -161,7 +161,7 @@ export default function DeviceList() {
         <div className="dev-link-row">
           <input
             type="text"
-            placeholder="API Key (from app)"
+            placeholder="API Key (from app's Copy Key)"
             value={newApiKey}
             onChange={(e) => setNewApiKey(e.target.value)}
             className="dev-input dev-input-full"
