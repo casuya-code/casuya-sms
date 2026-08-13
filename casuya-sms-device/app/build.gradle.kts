@@ -29,11 +29,11 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"https://casuya-sms-production.up.railway.app\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.132:8081/\"")
         }
         release {
             signingConfig = signingConfigs.getByName("release")
-            buildConfigField("String", "BASE_URL", "\"https://casuya-sms-production.up.railway.app\"")
+            buildConfigField("String", "BASE_URL", "\"https://casuya-sms-production.up.railway.app/\"")
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
