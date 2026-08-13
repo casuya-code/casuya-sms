@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import java.security.SecureRandom
-import java.util.UUID
 
 object PrefsManager {
     private const val PREF_NAME = "casuya_secure_store"
@@ -56,17 +54,6 @@ object PrefsManager {
 
     fun savePairingKey(key: String) = prefs?.edit()?.putString(KEY_PAIRING_KEY, key)?.apply()
     fun getPairingKey(): String? = prefs?.getString(KEY_PAIRING_KEY, null)
-
-    fun ensureDeviceIdentity() {
-        if (getDeviceId() == null) saveDeviceId(UUID.randomUUID().toString())
-        if (getPairingKey() == null) savePairingKey(generatePairingKey())
-    }
-
-    private fun generatePairingKey(): String {
-        val bytes = ByteArray(32)
-        SecureRandom().nextBytes(bytes)
-        return "casuya_dv_" + bytes.joinToString("") { "%02x".format(it.toInt() and 0xff) }
-    }
 
     fun saveEmail(email: String) = prefs?.edit()?.putString(KEY_EMAIL, email)?.apply()
     fun getEmail(): String? = prefs?.getString(KEY_EMAIL, null)

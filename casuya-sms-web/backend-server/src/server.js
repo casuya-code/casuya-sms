@@ -1,3 +1,5 @@
+const os = require("os");
+process.env.UV_THREADPOOL_SIZE = String(Math.min(os.cpus().length || 4, 16));
 require("dotenv").config();
 const http = require("http");
 const crypto = require("crypto");

@@ -34,7 +34,7 @@ export default function DeviceList() {
     setRegistering(true);
     setError("");
     try {
-      const res = await api.post("/api/devices/register", {
+      const res = await api.post("/api/devices/link", {
         device_id: newDeviceId.trim(),
         api_key: newApiKey.trim(),
         device_name: newName.trim() || "android",

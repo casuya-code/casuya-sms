@@ -42,7 +42,7 @@ casuya-sms-web/
 │       │   └── UsageLog.js  # sms_logs table
 │       ├── routes/
 │       │   ├── auth.js      # POST /api/auth/register, /login
-│       │   ├── devices.js   # POST /api/devices/register
+│       │   ├── devices.js   # POST /api/devices/provision, /link, /heartbeat
 │       │   ├── apikeys.js   # GET/POST /api/apikeys, revoke
 │       │   ├── admin.js     # GET /api/admin/* (Admin only)
 │       │   └── v1-sms.js    # POST /api/v1/send (API key)

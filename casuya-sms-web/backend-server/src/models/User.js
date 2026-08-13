@@ -1,5 +1,10 @@
 const { query } = require("../config/database");
-const bcrypt = require("bcryptjs");
+let bcrypt;
+try {
+  bcrypt = require("@node-rs/bcrypt");
+} catch {
+  bcrypt = require("bcryptjs");
+}
 
 async function createTable() {
   await query(`

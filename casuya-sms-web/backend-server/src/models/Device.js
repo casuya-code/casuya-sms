@@ -29,6 +29,21 @@ function hashKey(raw) {
   return crypto.createHash("sha256").update(raw).digest("hex");
 }
 
+function generatePairingKey() {
+  return `casuya_dv_${crypto.randomBytes(32).toString("hex")}`;
+}
+
+async function provision(pairingKeyHash, device_name) {
+  const deviceId = crypto.randomUUID();
+  const { rows } = await query(
+    `INSERT INTO devices (id, user_id, device_name, pairing_key_hash)
+     VALUES ($1, NULL, $2, $3)
+     RETURNING *`,
+    [deviceId, device_name, pairingKeyHash]
+  );
+  return rows[0];
+}
+
 async function link(user_id, deviceId, pairingKeyHash, device_name) {
   const { rows } = await query(
     `INSERT INTO devices (id, user_id, device_name, pairing_key_hash)
@@ -47,7 +62,7 @@ async function link(user_id, deviceId, pairingKeyHash, device_name) {
 
 async function findByDeviceAndKey(deviceId, pairingKeyHash) {
   const { rows } = await query(
-    "SELECT * FROM devices WHERE id = $1 AND pairing_key_hash = $2",
+    "SELECT * FROM devices WHERE id = $1 AND pairing_key_hash = $2 AND user_id IS NOT NULL",
     [deviceId, pairingKeyHash]
   );
   return rows[0] || null;
@@ -128,6 +143,8 @@ async function removeUnlinked(graceSeconds) {
 module.exports = {
   createTable,
   hashKey,
+  generatePairingKey,
+  provision,
   link,
   findByDeviceAndKey,
   markConnected,

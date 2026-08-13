@@ -62,7 +62,10 @@ fun RegisterScreen(
                 Toast.makeText(context, "Account created successfully", Toast.LENGTH_LONG).show()
                 onRegisterSuccess()
             } else {
-                error = "Registration failed: ${response.code()}"
+                error = when (response.code()) {
+                    409 -> "Email already registered"
+                    else -> "Registration failed: ${response.code()}"
+                }
             }
         } catch (e: Exception) {
             error = e.message ?: "Network error"

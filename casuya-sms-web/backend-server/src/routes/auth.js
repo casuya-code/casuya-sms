@@ -1,5 +1,10 @@
 const router = require("express").Router();
-const bcrypt = require("bcryptjs");
+let bcrypt;
+try {
+  bcrypt = require("@node-rs/bcrypt");
+} catch {
+  bcrypt = require("bcryptjs");
+}
 const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const User = require("../models/User");

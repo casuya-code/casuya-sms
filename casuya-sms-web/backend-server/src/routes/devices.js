@@ -4,7 +4,18 @@ const Device = require("../models/Device");
 const asyncHandler = require("../middleware/asyncHandler");
 
 router.post(
-  "/register",
+  "/provision",
+  auth,
+  asyncHandler(async (req, res) => {
+    const device_name = (req.body && req.body.device_name) || "android";
+    const apiKey = Device.generatePairingKey();
+    const device = await Device.provision(Device.hashKey(apiKey), device_name.trim());
+    return res.status(201).json({ deviceId: device.id, apiKey });
+  })
+);
+
+router.post(
+  "/link",
   auth,
   asyncHandler(async (req, res) => {
     const device_id = (req.body && req.body.device_id) || "";

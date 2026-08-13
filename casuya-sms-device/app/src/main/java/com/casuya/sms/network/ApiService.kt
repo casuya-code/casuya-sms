@@ -16,6 +16,9 @@ interface ApiService {
     @POST("api/auth/forgot-password")
     suspend fun forgotPassword(@Body body: ForgotPasswordRequest): Response<Unit>
 
+    @POST("api/devices/provision")
+    suspend fun provisionDevice(@Body body: ProvisionDeviceRequest): Response<ProvisionDeviceResponse>
+
     @POST("api/messages/received")
     suspend fun reportReceivedSms(@Body body: ReceivedSmsRequest): Response<Unit>
 
@@ -48,3 +51,5 @@ data class ReceivedBatchRequest(
 
 data class RegisterRequest(val name: String, val email: String, val password: String)
 data class ForgotPasswordRequest(val email: String)
+data class ProvisionDeviceRequest(val device_name: String = "android")
+data class ProvisionDeviceResponse(val deviceId: String, val apiKey: String)

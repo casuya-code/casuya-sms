@@ -10,6 +10,5 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         PrefsManager.init(this)
-        PrefsManager.ensureDeviceIdentity()
     }
 }

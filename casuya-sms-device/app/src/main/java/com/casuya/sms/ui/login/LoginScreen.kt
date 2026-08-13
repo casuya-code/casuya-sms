@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.casuya.sms.data.local.PrefsManager
 import com.casuya.sms.data.models.LoginRequest
 import com.casuya.sms.network.ApiClient
+import com.casuya.sms.network.ProvisionDeviceRequest
 import kotlinx.coroutines.launch
 
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,7 +54,7 @@ fun LoginScreen(
             if (!login.isSuccessful) {
                 error = when (login.code()) {
                     401 -> "Invalid email or password"
-                    409 -> "Email already registered"
+                    403 -> "Account is banned"
                     else -> "Login failed: ${login.code()}"
                 }
                 return
@@ -65,7 +66,18 @@ fun LoginScreen(
             }
             PrefsManager.saveToken(loginBody.token)
             PrefsManager.saveEmail(trimmedEmail)
-            PrefsManager.ensureDeviceIdentity()
+
+            if (PrefsManager.getDeviceId() == null || PrefsManager.getPairingKey() == null) {
+                val provision = ApiClient.apiService.provisionDevice(ProvisionDeviceRequest())
+                val provisionBody = provision.body()
+                if (provision.isSuccessful && provisionBody != null) {
+                    PrefsManager.saveDeviceId(provisionBody.deviceId)
+                    PrefsManager.savePairingKey(provisionBody.apiKey)
+                } else {
+                    error = "Device provisioning failed: ${provision.code()}"
+                    return
+                }
+            }
             onLoggedIn()
         } catch (e: Exception) {
             error = e.message ?: "Network error"

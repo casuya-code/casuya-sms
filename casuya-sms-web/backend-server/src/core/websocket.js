@@ -11,7 +11,7 @@ function init(server) {
     perMessageDeflate: false,
     verifyClient: async (info, callback) => {
       try {
-        const url = new URL(info.req.url, `http://${info.req.headers.host}`);
+        const url = new URL(info.req.url, "http://localhost");
         const deviceId = url.searchParams.get("deviceId");
         const apiKey = url.searchParams.get("apiKey");
 
@@ -60,7 +60,7 @@ function init(server) {
   wss.on("close", () => clearInterval(heartbeatInterval));
 
   wss.on("connection", (socket, req) => {
-    const url = new URL(req.url, `http://${req.headers.host}`);
+    const url = new URL(req.url, "http://localhost");
     const deviceId = url.searchParams.get("deviceId");
     const device = req.device;
 
