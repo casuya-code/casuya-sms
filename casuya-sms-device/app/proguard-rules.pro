@@ -19,9 +19,9 @@
     @com.google.gson.annotations.SerializedName <fields>;
 }
 
-# App models
+# App models and Network DTOs
 -keep class com.casuya.sms.data.models.** { *; }
--keep class com.casuya.sms.network.RegisterDeviceResponse { *; }
+-keep class com.casuya.sms.network.** { *; }
 
 # Security Crypto / Tink / ErrorProne
 -dontwarn com.google.errorprone.annotations.**

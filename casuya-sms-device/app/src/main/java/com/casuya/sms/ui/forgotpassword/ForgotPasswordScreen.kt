@@ -48,7 +48,7 @@ fun ForgotPasswordScreen(
                 error = "Error: ${response.code()}"
             }
         } catch (e: Exception) {
-            error = e.message ?: "Network error"
+            error = "Error: ${e.localizedMessage ?: e.message ?: e.javaClass.simpleName}"
         } finally {
             loading = false
         }

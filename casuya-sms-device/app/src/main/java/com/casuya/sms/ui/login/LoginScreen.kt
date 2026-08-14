@@ -80,7 +80,8 @@ fun LoginScreen(
             }
             onLoggedIn()
         } catch (e: Exception) {
-            error = e.message ?: "Network error"
+            error = "Error: ${e.localizedMessage ?: e.message ?: e.javaClass.simpleName}"
+            e.printStackTrace()
         } finally {
             loading = false
         }
