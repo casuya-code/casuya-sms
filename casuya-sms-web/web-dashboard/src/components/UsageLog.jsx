@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { onSocketEvent } from "../lib/realtime";
 
 const STATUS_STYLE = {
   queued: { bg: "#fff3cd", color: "#856404", label: "Queued" },
@@ -57,6 +58,19 @@ export default function UsageLog() {
     const id = setInterval(load, 5000);
     return () => clearInterval(id);
   }, [autoRefresh, load]);
+
+  useEffect(() => {
+    const off = onSocketEvent((data) => {
+      if (data && data.type === "sms:update" && data.sms_log_id) {
+        setLogs((prev) =>
+          prev.map((log) =>
+            log.id === data.sms_log_id ? { ...log, status: data.status } : log
+          )
+        );
+      }
+    });
+    return off;
+  }, []);
 
   const deleteOne = async (id) => {
     if (!confirm("Delete this log entry?")) return;

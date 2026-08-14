@@ -147,7 +147,7 @@ export default function Home() {
               GitHub
             </a>
             <button onClick={() => navigate("/login")} className="hx-nav-login">Login</button>
-            <button onClick={() => navigate("/login")} className="hx-nav-cta">Get Started</button>
+            <button onClick={() => navigate("/register")} className="hx-nav-cta">Get Started</button>
           </div>
         </div>
       </nav>
@@ -169,7 +169,7 @@ export default function Home() {
             Send and receive SMS using your own Android device. No third-party services, no per-message fees. Self-hosted and fully under your control.
           </p>
           <div className="hx-hero-actions">
-            <button onClick={() => navigate("/login")} className="hx-btn-cta">
+            <button onClick={() => navigate("/register")} className="hx-btn-cta">
               Start Sending Free
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
@@ -291,7 +291,7 @@ export default function Home() {
         <div className={`hx-cta-inner ${ctaVis ? "is-visible" : ""}`}>
           <h2 className="hx-cta-title">Ready to Get Started?</h2>
           <p className="hx-cta-desc">Create a free account and start sending SMS in under 2 minutes.</p>
-          <button onClick={() => navigate("/login")} className="hx-btn-cta-white">
+          <button onClick={() => navigate("/register")} className="hx-btn-cta-white">
             Create Free Account
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>

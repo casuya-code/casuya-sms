@@ -1,9 +1,11 @@
 const { WebSocketServer } = require("ws");
+const jwt = require("jsonwebtoken");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
 const { pool } = require("../config/database");
 
 const deviceSockets = new Map();
+const userSockets = new Map();
 
 function init(server) {
   const wss = new WebSocketServer({
@@ -14,11 +16,41 @@ function init(server) {
         const url = new URL(info.req.url, "http://localhost");
         const deviceId = url.searchParams.get("deviceId");
         const apiKey = url.searchParams.get("apiKey");
+        const token = url.searchParams.get("token");
 
+        // --- Dashboard / user connection (authenticated via JWT) ---
         if (!deviceId) {
-          callback(false, 401, "deviceId required");
+          if (!token) {
+            callback(false, 401, "token required");
+            return;
+          }
+          let payload;
+          try {
+            payload = jwt.verify(token, process.env.JWT_SECRET);
+          } catch (err) {
+            callback(false, 401, "invalid token");
+            return;
+          }
+          if (!payload || !payload.sub) {
+            callback(false, 401, "invalid token");
+            return;
+          }
+          const { rows } = await pool.query("SELECT id, banned FROM users WHERE id = $1", [payload.sub]);
+          if (rows.length === 0) {
+            callback(false, 403, "invalid user");
+            return;
+          }
+          if (rows[0].banned) {
+            callback(false, 403, "account is banned");
+            return;
+          }
+          info.req.userId = rows[0].id;
+          info.req.isUser = true;
+          callback(true);
           return;
         }
+
+        // --- Device connection (authenticated via device id + api key) ---
         if (!apiKey) {
           callback(false, 401, "apiKey required for WebSocket");
           return;
@@ -43,10 +75,9 @@ function init(server) {
   const heartbeatInterval = setInterval(() => {
     wss.clients.forEach((socket) => {
       if (socket.isAlive === false) {
-        const deviceId = socket.deviceId;
-        if (deviceId) {
-          deviceSockets.delete(deviceId);
-          Device.setStatus(deviceId, "offline").catch((err) => {
+        if (socket.deviceId) {
+          deviceSockets.delete(socket.deviceId);
+          Device.setStatus(socket.deviceId, "offline").catch((err) => {
             console.error("device offline update failed:", err.message);
           });
         }
@@ -60,6 +91,12 @@ function init(server) {
   wss.on("close", () => clearInterval(heartbeatInterval));
 
   wss.on("connection", (socket, req) => {
+    // Dashboard / user socket
+    if (req.isUser) {
+      handleUserConnection(socket, req.userId);
+      return;
+    }
+
     const url = new URL(req.url, "http://localhost");
     const deviceId = url.searchParams.get("deviceId");
     const device = req.device;
@@ -118,6 +155,7 @@ function init(server) {
           const status = data.success ? "delivered" : "failed";
           await UsageLog.updateStatus(smsLogId, status);
           console.log(`SMS status updated: log ${smsLogId} -> ${status}`);
+          notifyUser(device.user_id, { type: "sms:update", sms_log_id: smsLogId, status });
           socket.send(JSON.stringify({ type: "sms:ack", received: true, sms_log_id: smsLogId, status }));
         } catch (err) {
           console.error("sms:status update failed:", err.message);
@@ -147,4 +185,33 @@ function broadcast(deviceId, payload) {
   return true;
 }
 
-module.exports = { init, broadcast };
+function handleUserConnection(socket, userId) {
+  socket.isAlive = true;
+  socket.isUserSocket = true;
+
+  if (!userSockets.has(userId)) userSockets.set(userId, new Set());
+  const sockets = userSockets.get(userId);
+  sockets.add(socket);
+
+  const cleanup = () => {
+    sockets.delete(socket);
+    if (sockets.size === 0) userSockets.delete(userId);
+  };
+
+  socket.on("pong", () => { socket.isAlive = true; });
+  socket.on("close", cleanup);
+  socket.on("error", () => {});
+
+  socket.send(JSON.stringify({ type: "connected", user_id: userId }));
+}
+
+function notifyUser(userId, payload) {
+  const sockets = userSockets.get(userId);
+  if (!sockets || sockets.size === 0) return;
+  const msg = JSON.stringify(payload);
+  for (const sock of sockets) {
+    if (sock.readyState === 1) sock.send(msg);
+  }
+}
+
+module.exports = { init, broadcast, notifyUser };

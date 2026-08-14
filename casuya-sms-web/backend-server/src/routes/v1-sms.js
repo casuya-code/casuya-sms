@@ -6,7 +6,7 @@ const eitherAuth = require("../middleware/eitherAuth");
 const { pool } = require("../config/database");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
-const { broadcast } = require("../core/websocket");
+const { broadcast, notifyUser } = require("../core/websocket");
 const asyncHandler = require("../middleware/asyncHandler");
 
 // --- Rate limit: 30 SMS sends per minute per user ---
@@ -88,6 +88,7 @@ router.post(
     const delivered = broadcast(device.id, payload);
     if (!delivered) {
       await UsageLog.updateStatus(log.id, "failed");
+      notifyUser(req.user_id, { type: "sms:update", sms_log_id: log.id, status: "failed" });
       return res.status(503).json({ error: "device went offline", sms_log_id: log.id });
     }
 

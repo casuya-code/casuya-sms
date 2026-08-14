@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { api, getUser, clearSession } from "../lib/api";
+import { api, getUser, clearSession, getToken } from "../lib/api";
+import { connectUserSocket, disconnectUserSocket } from "../lib/realtime";
 import Sidebar, { Icons } from "../components/Sidebar";
 import DeviceList from "../components/DeviceList";
 import SendSmsPanel from "../components/SendSmsPanel";
@@ -71,6 +72,12 @@ export default function Dashboard() {
     clearSession();
     navigate("/login");
   };
+
+  useEffect(() => {
+    const token = getToken();
+    if (token) connectUserSocket(token);
+    return () => disconnectUserSocket();
+  }, []);
 
   return (
     <div style={{ display: "flex", fontFamily: "system-ui, sans-serif" }}>

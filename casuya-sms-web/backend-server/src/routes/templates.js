@@ -4,7 +4,7 @@ const asyncHandler = require("../middleware/asyncHandler");
 const Template = require("../models/Template");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
-const { broadcast } = require("../core/websocket");
+const { broadcast, notifyUser } = require("../core/websocket");
 
 router.use(auth);
 
@@ -111,6 +111,7 @@ router.post(
         const delivered = broadcast(device.id, payload);
         if (!delivered) {
           await UsageLog.updateStatus(log.id, "failed");
+          notifyUser(req.user.id, { type: "sms:update", sms_log_id: log.id, status: "failed" });
           failed++;
           results.push({ to: phone, status: "failed", error: "device went offline" });
         } else {

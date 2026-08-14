@@ -13,8 +13,8 @@ SaaS SMS Gateway Dashboard. This is the **Web project only** — the backend API
 ```
 
 - **Web Dashboard**: React admin/user interface.
-- **Backend**: Node.js API (auth, devices, API keys, SMS sending, admin, usage tracking).
-- **Bridge**: WebSocket server that keeps device apps connected so SMS orders can be delivered to them.
+- **Backend**: Node.js API (auth, devices, API keys, SMS sending, templates, messages, admin, usage tracking).
+- **Bridge**: WebSocket server (Node `ws`) that keeps device apps connected so SMS orders can be delivered to them. It also serves **authenticated dashboard users** so the web UI receives real-time SMS delivery updates.
 - The two projects are fully independent. This repo deploys to the cloud; the APK repo is built separately in Android Studio.
 
 ## Project Structure
@@ -30,22 +30,28 @@ casuya-sms-web/
 │       │   ├── database.js  # PostgreSQL connection
 │       │   └── passport.js  # JWT Auth strategy
 │       ├── core/
-│       │   └── websocket.js # Socket.io init + broadcast to devices
+│       │   └── websocket.js # WS init: device sockets + user sockets (notifyUser)
 │       ├── middleware/
 │       │   ├── auth.js       # Protects dashboard routes (JWT)
 │       │   ├── apiKeyAuth.js # Validates X-API-KEY header
+│       │   ├── eitherAuth.js # Accepts JWT OR API key
 │       │   └── asyncHandler.js # Wraps async routes (error handling)
 │       ├── models/
-│       │   ├── User.js      # users table + queries
-│       │   ├── Device.js    # devices table + queries
-│       │   ├── ApiKey.js    # api_keys table (hashed keys)
-│       │   └── UsageLog.js  # sms_logs table
+│       │   ├── User.js         # users table + queries
+│       │   ├── Device.js        # devices table + queries
+│       │   ├── ApiKey.js        # api_keys table (hashed keys)
+│       │   ├── UsageLog.js      # sms_logs table
+│       │   ├── Template.js      # templates table
+│       │   ├── Message.js       # saved messages table
+│       │   └── PasswordReset.js # password reset tokens
 │       ├── routes/
-│       │   ├── auth.js      # POST /api/auth/register, /login
-│       │   ├── devices.js   # POST /api/devices/provision, /link, /heartbeat
-│       │   ├── apikeys.js   # GET/POST /api/apikeys, revoke
-│       │   ├── admin.js     # GET /api/admin/* (Admin only)
-│       │   └── v1-sms.js    # POST /api/v1/send (API key)
+│       │   ├── auth.js       # POST /api/auth/register, /login, /forgot, /reset
+│       │   ├── devices.js    # POST /api/devices/link, /provision, /heartbeat
+│       │   ├── apikeys.js    # GET/POST /api/apikeys, revoke
+│       │   ├── messages.js   # /api/messages (saved messages)
+│       │   ├── templates.js  # /api/templates CRUD + bulk send
+│       │   ├── admin.js      # GET /api/admin/* (Admin only)
+│       │   └── v1-sms.js     # POST /api/v1/send, /bulk (API key)
 │       ├── app.js           # Express app + route mounting
 │       └── server.js        # HTTP + WebSocket bootstrap
 │
@@ -58,19 +64,34 @@ casuya-sms-web/
         │   ├── ApiKeyManager.jsx   # Generate/Revoke API keys
         │   ├── DeviceList.jsx      # Paired phones + status
         │   ├── SendSmsPanel.jsx    # Compose and send SMS
-        │   ├── UsageLog.jsx        # SMS log table (user view)
-        │   ├── AdminSidebar.jsx    # Admin panel navigation
+        │   ├── BulkSend.jsx        # CSV bulk send (+ template)
+        │   ├── TemplateList.jsx    # SMS templates
+        │   ├── TemplateEditor.jsx  # Create/edit template
+        │   ├── Messages.jsx        # Saved messages
+        │   ├── MessageEditor.jsx   # Compose saved message
+        │   ├── UsageLog.jsx        # SMS log table (user view, real-time)
+        │   ├── Sidebar.jsx         # Nav shell
+        │   ├── Footer.jsx          # Landing footer
+        │   ├── AuthShell.jsx       # Login/register layout
+        │   ├── Pagination.jsx      # Reusable pager
         │   └── admin/
         │       ├── OverviewSection.jsx  # Admin dashboard stats
         │       ├── UsersSection.jsx     # Admin user management
         │       ├── DevicesSection.jsx   # Admin device management
         │       └── LogsSection.jsx      # Admin SMS log view
         ├── pages/
-        │   ├── Login.jsx          # Login form (+ token storage)
+        │   ├── Home.jsx           # Marketing landing
+        │   ├── Login.jsx          # Login + Register (mode prop)
+        │   ├── ForgotPassword.jsx # Password reset request
+        │   ├── ResetPassword.jsx  # Password reset confirm
         │   ├── Dashboard.jsx      # Standard user view
-        │   └── AdminPanel.jsx     # Stats + user management
+        │   ├── AdminPanel.jsx     # Stats + user management
+        │   ├── PrivacyPolicy.jsx  # Legal page
+        │   └── TermsOfService.jsx # Legal page
         ├── lib/
-        │   └── api.js             # Axios client + auth token
+        │   ├── api.js             # Axios client + auth token
+        │   ├── realtime.js        # User WebSocket (real-time updates)
+        │   └── validation.js      # Form validators
         ├── App.jsx                # Routes + auth guard
         └── main.jsx               # React entry point
 ```
@@ -106,10 +127,10 @@ Relationships:
 
 ### 2. Device Registration (pairing a phone)
 
-1. User opens the Android App and logs in with dashboard credentials.
-2. The app calls `routes/devices.js` (with the user's JWT).
-3. Server generates a unique `deviceId` mapped to that `user_id`.
-4. The app stores the `deviceId` locally and uses it to authenticate its WebSocket connection to `server.js`.
+1. User installs the Android app and opens its Device Info screen — the app shows a **Device ID** and an **API Key**.
+2. In the web dashboard **Devices** section, the user clicks **Link Device** and pastes the Device ID + API Key.
+3. The server maps that `deviceId` to the logged-in `user_id` (`routes/devices.js`, `POST /link`).
+4. The app opens a WebSocket to `server.js` using `?deviceId=...&apiKey=...`; once connected it is shown as online.
 
 ### 3. Admin Control
 

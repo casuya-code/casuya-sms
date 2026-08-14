@@ -39,10 +39,10 @@ const EYE_OFF = (
   </svg>
 );
 
-export default function Login() {
+export default function Login({ mode: initialMode = "login" }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState(initialMode === "register" ? "register" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -117,12 +117,8 @@ export default function Login() {
   );
 
   const switchMode = useCallback(() => {
-    setMode((m) => (m === "login" ? "register" : "login"));
-    setPassword("");
-    setShowPassword(false);
-    setServerError("");
-    setFieldErrors({});
-  }, []);
+    navigate(mode === "login" ? "/register" : "/login");
+  }, [mode, navigate]);
 
   const togglePassword = useCallback(() => setShowPassword((v) => !v), []);
 

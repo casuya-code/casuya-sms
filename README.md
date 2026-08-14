@@ -47,7 +47,7 @@ Go to [casuya-sms.vercel.app](https://casuya-sms.vercel.app) and sign up.
 
 ### 3. Register Device
 
-In the dashboard, click **Register** to get a Device ID. Enter this ID in the Android app.
+Open the dashboard **Devices** section and click **Link Device**. In the Android app's Device Info screen, tap **Copy ID** and **Copy Key**, then paste both values into the dashboard and click **Link Device**. Keep the app open — it connects automatically and shows as online.
 
 ### 4. Send SMS
 
