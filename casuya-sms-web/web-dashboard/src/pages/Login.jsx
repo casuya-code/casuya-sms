@@ -62,6 +62,10 @@ export default function Login({ mode: initialMode = "login" }) {
     };
   }, []);
 
+  useEffect(() => {
+    setMode(initialMode === "register" ? "register" : "login");
+  }, [initialMode]);
+
   const isLogin = mode === "login";
   const strength = useMemo(() => passwordScore(password), [password]);
 

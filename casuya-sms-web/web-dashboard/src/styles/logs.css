@@ -415,35 +415,6 @@
     gap: 10px !important;
   }
 
-  /* Home steps grid single column */
-  .home-steps-grid {
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
-  }
-
-  /* Home features grid single column */
-  .home-features-grid {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-
-  /* Home hero title smaller */
-  .home-hero-title {
-    font-size: 26px !important;
-  }
-
-  /* Home section padding */
-  .home-section {
-    padding: 32px 16px !important;
-  }
-
-  /* Home nav wrap */
-  .home-nav {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    padding: 10px 12px !important;
-  }
-
   /* ==================== SMS LOGS MOBILE ==================== */
   .logs-card {
     padding: 12px !important;
@@ -577,18 +548,7 @@
     grid-template-columns: 1fr !important;
   }
 
-  .home-hero-title {
-    font-size: 22px !important;
-  }
-
-  .home-nav-links {
-    flex-wrap: wrap !important;
-    gap: 4px !important;
-  }
-
-  .home-btn-outline,
-  .home-btn-primary {
-    padding: 6px 10px !important;
-    font-size: 12px !important;
+  .logs-search-input {
+    min-width: 100% !important;
   }
 }

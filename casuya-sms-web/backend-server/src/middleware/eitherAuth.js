@@ -8,6 +8,9 @@ module.exports = async (req, res, next) => {
       const hash = ApiKey.hashKey(apiKey);
       const record = await ApiKey.findByHash(hash);
       if (record && !record.revoked) {
+        if (record.user_banned) {
+          return res.status(403).json({ error: "account is banned" });
+        }
         req.user_id = record.user_id;
         req.api_key_id = record.id;
         return next();

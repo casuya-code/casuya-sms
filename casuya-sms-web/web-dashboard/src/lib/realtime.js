@@ -1,21 +1,28 @@
 import { API_URL } from "./api";
 
 let socket = null;
+let currentToken = null;
+let reconnectTimer = null;
+let reconnectDelay = 1000;
 const listeners = new Set();
 
 function wsBase() {
   return API_URL.replace(/^http/, "ws").replace(/\/$/, "");
 }
 
-export function connectUserSocket(token) {
-  if (!token) return;
-  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-    return;
+function clearReconnect() {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
   }
-  const url = `${wsBase()}/ws/user?token=${encodeURIComponent(token)}`;
-  socket = new WebSocket(url);
+}
 
-  socket.onmessage = (event) => {
+function openSocket(token) {
+  const url = `${wsBase()}/ws/user?token=${encodeURIComponent(token)}`;
+  const ws = new WebSocket(url);
+  socket = ws;
+
+  ws.onmessage = (event) => {
     let data;
     try {
       data = JSON.parse(event.data);
@@ -31,22 +38,62 @@ export function connectUserSocket(token) {
     });
   };
 
-  socket.onclose = () => {
-    socket = null;
+  ws.onopen = () => {
+    reconnectDelay = 1000;
   };
 
-  socket.onerror = () => {
+  ws.onclose = () => {
+    // Only clear the module reference if this socket is still the active one.
+    if (socket === ws) socket = null;
+    // Intentional closes (logout, unmount, token swap) must not reconnect.
+    if (ws._intentional) return;
+    if (reconnectTimer) return;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      if (currentToken) openSocket(currentToken);
+    }, reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 2, 15000);
+  };
+
+  ws.onerror = () => {
     try {
-      socket.close();
+      ws.close();
     } catch {
       /* noop */
     }
   };
 }
 
+export function connectUserSocket(token) {
+  if (!token) return;
+  // Token changed while a socket is open: replace it.
+  if (socket && currentToken && currentToken !== token && socket.readyState !== WebSocket.CLOSED) {
+    socket._intentional = true;
+    try {
+      socket.close();
+    } catch {
+      /* noop */
+    }
+    socket = null;
+  }
+  currentToken = token;
+  clearReconnect();
+  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
+  openSocket(token);
+}
+
 export function disconnectUserSocket() {
+  clearReconnect();
+  currentToken = null;
   if (socket) {
-    socket.close();
+    socket._intentional = true;
+    try {
+      socket.close();
+    } catch {
+      /* noop */
+    }
     socket = null;
   }
 }

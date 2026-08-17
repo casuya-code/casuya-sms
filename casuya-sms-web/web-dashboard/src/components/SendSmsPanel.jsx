@@ -54,7 +54,7 @@ export default function SendSmsPanel() {
     }
   };
 
-  const canSend = apiKey && to.trim() && message.trim() && onlineDevices.length > 0 && !loading;
+  const canSend = apiKey && to.trim() && message.trim() && onlineDevices.length > 0 && !loading && message.length <= 1500;
 
   if (bulkView) {
     return (
@@ -139,6 +139,7 @@ export default function SendSmsPanel() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={5}
+            maxLength={1500}
             style={{ ...inputStyle, resize: "vertical", paddingRight: 70 }}
             disabled={!apiKey}
           />

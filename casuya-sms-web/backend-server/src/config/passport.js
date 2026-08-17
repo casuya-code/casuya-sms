@@ -11,7 +11,7 @@ const opts = {
 passport.use(
   new JwtStrategy(opts, async (payload, done) => {
     try {
-      const { rows } = await query("SELECT * FROM users WHERE id = $1", [payload.sub]);
+      const { rows } = await query("SELECT id, email, role, banned FROM users WHERE id = $1", [payload.sub]);
       if (rows.length === 0) return done(null, false);
       return done(null, rows[0]);
     } catch (err) {

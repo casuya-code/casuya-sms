@@ -34,26 +34,34 @@ app.use(helmet({
 
 // --- CORS (restricted origins) ---
 const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173").split(",").map((s) => s.trim());
+const hasWildcard = allowedOrigins.includes("*");
+// A wildcard origin is only safe without credentials. If a specific origin
+// list is configured we enforce it and allow credentialed requests.
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
-      callback(null, true);
-    } else {
-      const err = new Error("CORS not allowed");
-      err.statusCode = 403;
-      callback(err);
-    }
-  },
-  credentials: true,
+  origin: hasWildcard
+    ? true
+    : (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          const err = new Error("CORS not allowed");
+          err.statusCode = 403;
+          callback(err);
+        }
+      },
+  credentials: !hasWildcard,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-API-KEY"],
   maxAge: 86400,
 }));
 
-// --- Body parsing with strict limits (larger for message uploads) ---
+// --- Body parsing with strict limits (larger for message uploads / bulk) ---
 app.use((req, res, next) => {
+  let limit = "64kb";
+  if (req.path.startsWith("/api/messages")) limit = "1mb";
+  else if (req.path.startsWith("/api/v1")) limit = "2mb";
   const parser = express.json({
-    limit: req.path.startsWith("/api/messages") ? "1mb" : "64kb",
+    limit,
     type: ["application/json"],
   });
   return parser(req, res, next);
@@ -85,6 +93,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/devices", require("./routes/devices"));
 app.use("/api/messages", require("./routes/messages"));
 app.use("/api/apikeys", require("./routes/apikeys"));
+app.use("/api/webhooks", require("./routes/webhooks"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/templates", require("./routes/templates"));
 app.use("/api/v1", require("./routes/v1-sms"));

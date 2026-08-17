@@ -1,3 +1,5 @@
+import { formatTime } from "../../lib/format";
+
 const STAT_CARDS = [
   { key: "users", label: "Total Users", color: "#1565c0", bg: "#e3f2fd", icon: "👥" },
   { key: "online_devices", label: "Online Devices", color: "#2e7d32", bg: "#e8f5e9", icon: "📱" },
@@ -169,7 +171,7 @@ export default function OverviewSection({ stats, users, devices, logs }) {
                   </div>
                 </div>
                 <div style={{ fontSize: 11, color: "#aaa", whiteSpace: "nowrap" }}>
-                  {new Date(log.created_at).toLocaleTimeString()}
+                  {formatTime(log.created_at)}
                 </div>
               </div>
             ))}

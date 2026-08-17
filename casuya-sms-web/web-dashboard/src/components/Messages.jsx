@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { formatDateTime } from "../lib/format";
 
 const TYPE_LABELS = {
   1: { label: "Inbox", bg: "#e3f2fd", color: "#0d47a1" },
@@ -39,6 +40,7 @@ export default function Messages() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [type, setType] = useState("");
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [offset, setOffset] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
   const [clearingAll, setClearingAll] = useState(false);
@@ -80,12 +82,16 @@ export default function Messages() {
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
-    setSearch(value);
+    setSearchInput(value);
     clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => setOffset(0), 400);
+    searchTimer.current = setTimeout(() => {
+      setSearch(value);
+      setOffset(0);
+    }, 400);
   };
 
   const clearSearch = () => {
+    setSearchInput("");
     setSearch("");
     setOffset(0);
   };
@@ -182,8 +188,9 @@ export default function Messages() {
         <input
           type="text"
           placeholder="Search number or message content..."
-          value={search}
+          value={searchInput}
           onChange={handleSearchChange}
+          className="logs-search-input"
           style={{
             flex: 1,
             minWidth: 200,
@@ -236,7 +243,7 @@ export default function Messages() {
                       {m.device_id ? m.device_id.slice(0, 8) + "..." : "\u2014"}
                     </td>
                     <td className="logs-td-time">
-                      {m.timestamp ? new Date(m.timestamp).toLocaleString() : new Date(m.created_at).toLocaleString()}
+                      {formatDateTime(m.timestamp || m.created_at)}
                     </td>
                     <td className="logs-td-actions">
                       <button
@@ -268,7 +275,7 @@ export default function Messages() {
                     {m.device_id ? m.device_id.slice(0, 8) + "..." : "\u2014"}
                   </span>
                   <span className="logs-mobile-time">
-                    {m.timestamp ? new Date(m.timestamp).toLocaleString() : new Date(m.created_at).toLocaleString()}
+                    {formatDateTime(m.timestamp || m.created_at)}
                   </span>
                 </div>
                 <button

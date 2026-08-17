@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Pagination from "../Pagination";
+import { formatDateTime } from "../../lib/format";
 
 const STATUS_STYLE = {
   queued: { bg: "#fff3cd", color: "#856404" },
@@ -138,7 +139,7 @@ export default function LogsSection({ logs, total, page, pageSize, onPage }) {
                       {log.device_id ? log.device_id.slice(0, 8) + "..." : "—"}
                     </td>
                     <td style={{ whiteSpace: "nowrap", color: "#888" }}>
-                      {new Date(log.created_at).toLocaleString()}
+                      {formatDateTime(log.created_at)}
                     </td>
                   </tr>
                 );

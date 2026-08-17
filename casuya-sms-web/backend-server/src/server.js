@@ -4,6 +4,14 @@ require("dotenv").config();
 const http = require("http");
 const crypto = require("crypto");
 
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
 if (!process.env.JWT_SECRET) {
   console.error("FATAL: JWT_SECRET is not set. Copy .env.example to .env and set a value.");
   process.exit(1);
@@ -78,6 +86,18 @@ function startDeviceCleanup() {
   setInterval(run, 5 * 60 * 1000);
 }
 
+function startResetCleanup() {
+  const run = async () => {
+    try {
+      await require("./models/PasswordReset").cleanupExpired();
+    } catch (err) {
+      console.error("reset cleanup failed:", err.message);
+    }
+  };
+  run();
+  setInterval(run, 24 * 60 * 60 * 1000);
+}
+
 server.listen(PORT, async () => {
   try {
     await require("./models/User").createTable();
@@ -88,9 +108,15 @@ server.listen(PORT, async () => {
       require("./models/Template").createTable(),
       require("./models/PasswordReset").createTable(),
       require("./models/Message").createTable(),
+      require("./models/Webhook").createTable(),
     ]);
-    await seedAdmin();
+    try {
+      await seedAdmin();
+    } catch (err) {
+      console.error("admin seed skipped:", err.message);
+    }
     startDeviceCleanup();
+    startResetCleanup();
     console.log(`casuya-sms backend on :${PORT} [${process.env.NODE_ENV || "development"}]`);
   } catch (err) {
     console.error("startup failed:", err.message);

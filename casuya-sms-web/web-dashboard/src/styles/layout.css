@@ -350,22 +350,4 @@
   .stat-number {
     font-size: 24px !important;
   }
-
-  .device-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .device-actions button {
-    width: 100%;
-    text-align: center;
-  }
-
-  .home-hero h1 {
-    font-size: 28px !important;
-  }
-
-  .home-nav-links {
-    gap: 6px !important;
-  }
 }

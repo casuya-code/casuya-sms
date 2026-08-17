@@ -29,7 +29,10 @@ async function generate(user_id) {
 
 async function findByHash(key_hash) {
   const { rows } = await query(
-    "SELECT * FROM api_keys WHERE key_hash = $1 AND revoked = false",
+    `SELECT ak.*, u.banned AS user_banned
+     FROM api_keys ak
+     JOIN users u ON u.id = ak.user_id
+     WHERE ak.key_hash = $1 AND ak.revoked = false`,
     [key_hash]
   );
   return rows[0] || null;

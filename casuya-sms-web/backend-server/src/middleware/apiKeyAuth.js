@@ -12,6 +12,9 @@ const apiKeyAuth = asyncHandler(async (req, res, next) => {
   if (!record) {
     return res.status(401).json({ error: "Invalid API key" });
   }
+  if (record.user_banned) {
+    return res.status(403).json({ error: "account is banned" });
+  }
 
   req.user_id = record.user_id;
   req.api_key_id = record.id;

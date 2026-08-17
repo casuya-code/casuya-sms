@@ -5,6 +5,7 @@ const auth = require("../middleware/auth");
 const asyncHandler = require("../middleware/asyncHandler");
 const Message = require("../models/Message");
 const Device = require("../models/Device");
+const webhook = require("../core/webhook");
 
 const uploadLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -46,8 +47,12 @@ router.post(
     if (items.length === 0) {
       return res.status(400).json({ error: "items array is empty" });
     }
+    if (items.length > 1000) {
+      return res.status(400).json({ error: "too many items (max 1000)" });
+    }
 
     const inserted = await Message.addBatch(req.user.id, deviceId, items);
+    webhook.deliver(req.user.id, "sms.received", { device_id: deviceId, messages: items });
     return res.status(201).json({ success: true, inserted });
   })
 );

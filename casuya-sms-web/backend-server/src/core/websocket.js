@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
 const { pool } = require("../config/database");
+const webhook = require("./webhook");
 
 const deviceSockets = new Map();
 const userSockets = new Map();
@@ -60,6 +61,12 @@ function init(server) {
         const device = await Device.findByDeviceAndKey(deviceId, Device.hashKey(apiKey));
         if (!device) {
           callback(false, 403, "invalid device id or api key");
+          return;
+        }
+
+        const { rows: userRows } = await pool.query("SELECT banned FROM users WHERE id = $1", [device.user_id]);
+        if (userRows.length === 0 || userRows[0].banned) {
+          callback(false, 403, "account is banned");
           return;
         }
 
@@ -145,7 +152,7 @@ function init(server) {
 
         try {
           const { rows } = await pool.query(
-            "SELECT id FROM sms_logs WHERE id = $1 AND device_id = $2",
+            "SELECT id, to_number, message FROM sms_logs WHERE id = $1 AND device_id = $2",
             [smsLogId, deviceId]
           );
           if (rows.length === 0) {
@@ -156,6 +163,13 @@ function init(server) {
           await UsageLog.updateStatus(smsLogId, status);
           console.log(`SMS status updated: log ${smsLogId} -> ${status}`);
           notifyUser(device.user_id, { type: "sms:update", sms_log_id: smsLogId, status });
+          webhook.deliver(device.user_id, "sms.status", {
+            sms_log_id: smsLogId,
+            to: rows[0].to_number,
+            message: rows[0].message,
+            status,
+            device_id: deviceId,
+          });
           socket.send(JSON.stringify({ type: "sms:ack", received: true, sms_log_id: smsLogId, status }));
         } catch (err) {
           console.error("sms:status update failed:", err.message);
@@ -165,10 +179,15 @@ function init(server) {
     });
 
     socket.on("close", () => {
-      deviceSockets.delete(deviceId);
-      Device.setStatus(deviceId, "offline").catch((err) => {
-        console.error("device offline update failed:", err.message);
-      });
+      // Only mark offline if this socket is still the active one for the device.
+      // A reconnect closes the old socket after the new one has taken over, which
+      // would otherwise race and persist a stale "offline" status.
+      if (deviceSockets.get(deviceId) === socket) {
+        deviceSockets.delete(deviceId);
+        Device.setStatus(deviceId, "offline").catch((err) => {
+          console.error("device offline update failed:", err.message);
+        });
+      }
       console.log(`device disconnected: ${deviceId}`);
     });
 

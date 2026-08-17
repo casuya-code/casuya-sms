@@ -7,6 +7,7 @@ const { pool } = require("../config/database");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
 const { broadcast, notifyUser } = require("../core/websocket");
+const webhook = require("../core/webhook");
 const asyncHandler = require("../middleware/asyncHandler");
 
 // --- Rate limit: 30 SMS sends per minute per user ---
@@ -61,8 +62,8 @@ router.delete(
 
 router.post(
   "/send",
-  smsSendLimiter,
   apiKeyAuth,
+  smsSendLimiter,
   asyncHandler(async (req, res) => {
     const { to, message } = req.body || {};
     if (!to || !message) {
@@ -92,6 +93,14 @@ router.post(
       return res.status(503).json({ error: "device went offline", sms_log_id: log.id });
     }
 
+    webhook.deliver(req.user_id, "sms.sent", {
+      sms_log_id: log.id,
+      to,
+      message,
+      status: "queued",
+      device_id: device.id,
+    });
+
     return res.status(202).json({
       success: true,
       sms_log_id: log.id,
@@ -118,8 +127,8 @@ router.get(
 
 router.post(
   "/bulk",
-  bulkSendLimiter,
   apiKeyAuth,
+  bulkSendLimiter,
   asyncHandler(async (req, res) => {
     const { messages, device_id } = req.body || {};
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -167,6 +176,13 @@ router.post(
           await UsageLog.updateStatus(log.id, "failed");
           results.push({ to, status: "failed", error: "device went offline", sms_log_id: log.id });
         } else {
+          webhook.deliver(req.user_id, "sms.sent", {
+            sms_log_id: log.id,
+            to,
+            message,
+            status: "queued",
+            device_id: device.id,
+          });
           results.push({ to, status: "queued", sms_log_id: log.id });
         }
       } catch (err) {

@@ -48,6 +48,30 @@ function formatFileSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 
+function parseCSVLine(line) {
+  const result = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += ch;
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ",") {
+      result.push(field);
+      field = "";
+    } else {
+      field += ch;
+    }
+  }
+  result.push(field);
+  return result;
+}
+
 function fillTemplate(tpl, row) {
   return tpl.replace(/\{(\w+)\}/g, (_, key) => row[key] ?? "");
 }
@@ -106,17 +130,16 @@ export default function BulkSend({ template, standalone, onDone, onBack }) {
   const selectedDevice = devices.find((d) => d.id === deviceId);
 
   const parseCSV = useCallback((text) => {
-    const lines = text.trim().split(/\r?\n/).filter((l) => l.trim());
+    const lines = text.replace(/^\uFEFF/, "").trim().split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) { setParsed(null); return; }
-    const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+    const headers = parseCSVLine(lines[0]).map((h) => h.trim());
     const rows = [];
     for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
-      if (cols.length === headers.length) {
-        const row = {};
-        headers.forEach((h, j) => { row[h] = cols[j]; });
-        rows.push(row);
-      }
+      const cols = parseCSVLine(lines[i]).map((c) => c.trim());
+      if (cols.length < 1) continue;
+      const row = {};
+      headers.forEach((h, j) => { row[h] = cols[j] || ""; });
+      rows.push(row);
     }
     setParsed({ headers, rows });
     setRecipientColumn(detectPhoneColumn(headers));
@@ -275,8 +298,8 @@ export default function BulkSend({ template, standalone, onDone, onBack }) {
               <span style={{ fontSize: 12, color: "#888" }}>{parsed.rows.length} rows, {parsed.headers.length} columns</span>
               <button onClick={() => { setParsed(null); setFileName(null); setCsvText(""); setRecipientColumn(""); }} style={{ cursor: "pointer", padding: "2px 8px", fontSize: 12, background: "none", border: "1px solid #ddd", borderRadius: 4, color: "#888" }}>&times;</button>
             </div>
-            <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, overflow: "hidden", marginBottom: 8 }}>
-              <div style={{ maxHeight: 200, overflowY: "auto" }}>
+            <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, marginBottom: 8 }}>
+              <div style={{ maxHeight: 200, overflow: "auto", WebkitOverflowScrolling: "touch" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
                     <tr>{parsed.headers.map((h) => <th key={h} style={th}>{h}</th>)}</tr>

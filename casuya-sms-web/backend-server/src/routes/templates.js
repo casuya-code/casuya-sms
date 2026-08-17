@@ -1,10 +1,22 @@
 const router = require("express").Router();
+const rateLimit = require("express-rate-limit");
 const auth = require("../middleware/auth");
 const asyncHandler = require("../middleware/asyncHandler");
 const Template = require("../models/Template");
 const Device = require("../models/Device");
 const UsageLog = require("../models/UsageLog");
 const { broadcast, notifyUser } = require("../core/websocket");
+
+const TEMPLATE_SEND_MAX = 500;
+
+const templateSendLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "SMS rate limit exceeded, slow down" },
+  keyGenerator: (req) => req.user.id.toString(),
+});
 
 router.use(auth);
 
@@ -60,6 +72,7 @@ router.delete(
 
 router.post(
   "/:id/send",
+  templateSendLimiter,
   asyncHandler(async (req, res) => {
     const tmpl = await Template.findById(req.params.id, req.user.id);
     if (!tmpl) {
@@ -69,6 +82,9 @@ router.post(
     const { rows, device_id } = req.body || {};
     if (!Array.isArray(rows) || rows.length === 0) {
       return res.status(400).json({ error: "rows array is required" });
+    }
+    if (rows.length > TEMPLATE_SEND_MAX) {
+      return res.status(400).json({ error: `too many rows (max ${TEMPLATE_SEND_MAX})` });
     }
 
     const devices = await Device.listByUser(req.user.id);

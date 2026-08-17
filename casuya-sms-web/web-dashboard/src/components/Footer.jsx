@@ -94,9 +94,9 @@ export default function Footer() {
               <a href={APK_URL} download className="footer-link" target="_blank" rel="noopener">
                 {DOWNLOAD}Download App
               </a>
-              <a href="https://casuya-sms.vercel.app/dashboard?section=send" className="footer-link">
+              <Link to="/dashboard?section=send" className="footer-link">
                 {SEND}Send SMS
-              </a>
+              </Link>
               <Link to="/dashboard?section=apikeys" className="footer-link">
                 {KEY}Developer Keys
               </Link>

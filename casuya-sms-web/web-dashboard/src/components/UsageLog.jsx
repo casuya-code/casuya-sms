@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { onSocketEvent } from "../lib/realtime";
+import { formatDateTime } from "../lib/format";
 
 const STATUS_STYLE = {
   queued: { bg: "#fff3cd", color: "#856404", label: "Queued" },
@@ -36,6 +37,7 @@ export default function UsageLog() {
   const [clearingAll, setClearingAll] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await api.get("/api/v1/sms/logs");
       setLogs(res.data);
@@ -169,7 +171,7 @@ export default function UsageLog() {
                     <td className="logs-td-device" title={log.device_id}>
                       {log.device_id ? log.device_id.slice(0, 8) + "..." : "\u2014"}
                     </td>
-                    <td className="logs-td-time">{new Date(log.created_at).toLocaleString()}</td>
+                    <td className="logs-td-time">{formatDateTime(log.created_at)}</td>
                     <td className="logs-td-actions">
                       <button
                         onClick={() => deleteOne(log.id)}
@@ -200,7 +202,7 @@ export default function UsageLog() {
                   <span className="logs-mobile-device" title={log.device_id}>
                     {log.device_id ? log.device_id.slice(0, 8) + "..." : "\u2014"}
                   </span>
-                  <span className="logs-mobile-time">{new Date(log.created_at).toLocaleString()}</span>
+                  <span className="logs-mobile-time">{formatDateTime(log.created_at)}</span>
                 </div>
                 <button
                   onClick={() => deleteOne(log.id)}

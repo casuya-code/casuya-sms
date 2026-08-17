@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Pagination from "../Pagination";
+import { formatDate } from "../../lib/format";
 
 export default function UsersSection({
   users,
@@ -101,7 +102,7 @@ export default function UsersSection({
                     </span>
                   </td>
                   <td style={{ whiteSpace: "nowrap" }}>
-                    {new Date(u.created_at).toLocaleDateString()}
+                    {formatDate(u.created_at)}
                   </td>
                   <td>
                     <div style={{ display: "flex", gap: 6 }}>

@@ -1,18 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { formatDate } from "../lib/format";
 
 const ACTIVE_KEY = "casuya_api_key";
+const ACTIVE_KEY_ID = "casuya_api_key_id";
 
 export function getActiveApiKey() {
   return localStorage.getItem(ACTIVE_KEY) || "";
 }
 
-export function setActiveApiKey(raw) {
+export function getActiveApiKeyId() {
+  return localStorage.getItem(ACTIVE_KEY_ID) || "";
+}
+
+export function setActiveApiKey(raw, id) {
   localStorage.setItem(ACTIVE_KEY, raw);
+  if (id) localStorage.setItem(ACTIVE_KEY_ID, String(id));
 }
 
 export function clearActiveApiKey() {
   localStorage.removeItem(ACTIVE_KEY);
+  localStorage.removeItem(ACTIVE_KEY_ID);
 }
 
 export default function ApiKeyManager() {
@@ -45,7 +53,7 @@ export default function ApiKeyManager() {
     try {
       const res = await api.post("/api/apikeys");
       setRaw(res.data.raw);
-      setActiveApiKey(res.data.raw);
+      setActiveApiKey(res.data.raw, res.data.record?.id);
       load();
     } catch (e) {
       setError(e.response?.data?.error || "failed to generate key");
@@ -59,6 +67,7 @@ export default function ApiKeyManager() {
     if (!confirm("Revoke this key? Any scripts using it will stop working.")) return;
     try {
       await api.post(`/api/apikeys/${id}/revoke`);
+      if (getActiveApiKeyId() === String(id)) clearActiveApiKey();
       load();
     } catch (e) {
       setError(e.response?.data?.error || "failed to revoke key");
@@ -70,7 +79,7 @@ export default function ApiKeyManager() {
     if (!confirm("Permanently delete this key? This cannot be undone.")) return;
     try {
       await api.delete(`/api/apikeys/${id}`);
-      if (getActiveApiKey()) clearActiveApiKey();
+      if (getActiveApiKeyId() === String(id)) clearActiveApiKey();
       load();
     } catch (e) {
       setError(e.response?.data?.error || "failed to delete key");
@@ -190,7 +199,7 @@ Generate a key, then use it with <code>POST /api/v1/send</code> and header{" "}
                 }}
               />
               <span style={{ flex: 1, fontSize: 14 }}>
-                Key #{keys.length - idx} — created {new Date(k.created_at).toLocaleDateString()}
+                Key #{keys.length - idx} — created {formatDate(k.created_at)}
               </span>
               <span
                 style={{

@@ -65,17 +65,22 @@ export default function MessageEditor({ value, onChange, placeholder }) {
     applyChange(final, newHistory);
   }, [parts, history, pointer, applyChange]);
 
+  const applyAt = useCallback((targetPointer) => {
+    setParts(cloneParts(history[targetPointer]));
+    setPointer(targetPointer);
+    lastValueRef.current = partsToText(history[targetPointer]);
+    onChange(partsToText(history[targetPointer]));
+  }, [history, onChange]);
+
   const undo = useCallback(() => {
     if (pointer <= 0) return;
-    const restored = cloneParts(history[pointer - 1]);
-    applyChange(restored, history);
-  }, [pointer, history, applyChange]);
+    applyAt(pointer - 1);
+  }, [pointer, applyAt]);
 
   const redo = useCallback(() => {
     if (pointer >= history.length - 1) return;
-    const restored = cloneParts(history[pointer + 1]);
-    applyChange(restored, history);
-  }, [pointer, history, applyChange]);
+    applyAt(pointer + 1);
+  }, [pointer, history.length, applyAt]);
 
   const addText = useCallback(() => {
     const t = newText.trim();
@@ -155,7 +160,8 @@ export default function MessageEditor({ value, onChange, placeholder }) {
         })}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", gap: 4 }}>
         <button onClick={undo} disabled={!canUndo} title="Undo" style={{
           cursor: canUndo ? "pointer" : "not-allowed",
           padding: "4px 8px", fontSize: 13,
@@ -168,7 +174,8 @@ export default function MessageEditor({ value, onChange, placeholder }) {
           background: "#f5f5f5", border: "1px solid #ddd", borderRadius: 4,
           color: canRedo ? "#333" : "#bbb", fontWeight: 600,
         }}>↪</button>
-        <div style={{ flex: 1, display: "flex", gap: 6 }}>
+        </div>
+        <div style={{ flex: 1, display: "flex", gap: 6, minWidth: 160 }}>
           <input
             type="text"
             placeholder="Add text..."

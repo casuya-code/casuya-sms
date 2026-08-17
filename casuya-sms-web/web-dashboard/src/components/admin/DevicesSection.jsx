@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Pagination from "../Pagination";
+import { formatDateTime } from "../../lib/format";
 
 export default function DevicesSection({ devices, total, page, pageSize, onPage }) {
   const [search, setSearch] = useState("");
@@ -92,7 +93,7 @@ export default function DevicesSection({ devices, total, page, pageSize, onPage 
                   </td>
                   <td>{d.user_email}</td>
                   <td style={{ whiteSpace: "nowrap" }}>
-                    {new Date(d.created_at).toLocaleString()}
+                    {formatDateTime(d.created_at)}
                   </td>
                 </tr>
               ))}

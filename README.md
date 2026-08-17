@@ -120,7 +120,7 @@ VITE_API_URL=https://your-railway-app.up.railway.app
 | POST | `/api/v1/send` | API Key | Send SMS |
 | GET | `/api/v1/sms/logs` | JWT | View SMS logs |
 
-Full API docs coming soon.
+> Full API and webhook documentation: see [**API.md**](casuya-sms-web/API.md) — covers sending SMS, delivery status, webhook setup, signature verification, and all endpoint reference.
 
 ## Environment Variables
 

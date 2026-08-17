@@ -82,8 +82,15 @@ router.post(
       return res.status(409).json({ error: "email already registered" });
     }
 
-    const user = await User.createUser(email.toLowerCase(), password);
-    return res.status(201).json({ token: signToken(user), user: User.safeUser(user) });
+    try {
+      const user = await User.createUser(email.toLowerCase(), password);
+      return res.status(201).json({ token: signToken(user), user: User.safeUser(user) });
+    } catch (err) {
+      if (err && err.code === "23505") {
+        return res.status(409).json({ error: "email already registered" });
+      }
+      throw err;
+    }
   })
 );
 

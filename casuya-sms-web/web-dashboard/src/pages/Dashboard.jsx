@@ -7,10 +7,11 @@ import DeviceList from "../components/DeviceList";
 import SendSmsPanel from "../components/SendSmsPanel";
 import UsageLog from "../components/UsageLog";
 import ApiKeyManager from "../components/ApiKeyManager";
+import WebhookManager from "../components/WebhookManager";
 import TemplateList from "../components/TemplateList";
 import Messages from "../components/Messages";
 
-const VALID_SECTIONS = ["devices", "send", "templates", "messages", "logs", "apikeys"];
+const VALID_SECTIONS = ["devices", "send", "templates", "messages", "logs", "apikeys", "webhooks"];
 const PAGE_TITLES = {
   devices: "My Devices",
   send: "Send SMS",
@@ -18,6 +19,7 @@ const PAGE_TITLES = {
   messages: "All Messages",
   logs: "SMS Logs",
   apikeys: "Developer Keys",
+  webhooks: "Webhooks",
 };
 
 const USER_NAV_ITEMS = [
@@ -27,6 +29,7 @@ const USER_NAV_ITEMS = [
   { key: "messages", label: "All Messages", icon: Icons.Messages },
   { key: "logs", label: "SMS Logs", icon: Icons.Logs },
   { key: "apikeys", label: "Developer Keys", icon: Icons.ApiKeys },
+  { key: "webhooks", label: "Webhooks", icon: Icons.Webhooks },
 ];
 
 export default function Dashboard() {
@@ -70,6 +73,7 @@ export default function Dashboard() {
 
   const logout = () => {
     clearSession();
+    disconnectUserSocket();
     navigate("/login");
   };
 
@@ -136,6 +140,7 @@ export default function Dashboard() {
           {active === "messages" && <Messages />}
           {active === "logs" && <UsageLog />}
           {active === "apikeys" && <ApiKeyManager />}
+          {active === "webhooks" && <WebhookManager />}
         </div>
       </div>
     </div>
