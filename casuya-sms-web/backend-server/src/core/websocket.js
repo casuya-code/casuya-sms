@@ -13,69 +13,71 @@ function init(server) {
     server,
     perMessageDeflate: false,
     verifyClient: (info, callback) => {
-      try {
-        const url = new URL(info.req.url, "http://localhost");
-        const deviceId = url.searchParams.get("deviceId");
-        const apiKey = url.searchParams.get("apiKey");
-        const token = url.searchParams.get("token");
+      (async () => {
+        try {
+          const url = new URL(info.req.url, "http://localhost");
+          const deviceId = url.searchParams.get("deviceId");
+          const apiKey = url.searchParams.get("apiKey");
+          const token = url.searchParams.get("token");
 
-        // --- Dashboard / user connection (authenticated via JWT) ---
-        if (!deviceId) {
-          if (!token) {
-            callback(false, 401, "token required");
+          // --- Dashboard / user connection (authenticated via JWT) ---
+          if (!deviceId) {
+            if (!token) {
+              callback(false, 401, "token required");
+              return;
+            }
+            let payload;
+            try {
+              payload = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+              callback(false, 401, "invalid token");
+              return;
+            }
+            if (!payload || !payload.sub) {
+              callback(false, 401, "invalid token");
+              return;
+            }
+            const { rows } = await pool.query("SELECT id, banned FROM users WHERE id = $1", [payload.sub]);
+            if (rows.length === 0) {
+              callback(false, 403, "invalid user");
+              return;
+            }
+            if (rows[0].banned) {
+              callback(false, 403, "account is banned");
+              return;
+            }
+            info.req.userId = rows[0].id;
+            info.req.isUser = true;
+            callback(true);
             return;
           }
-          let payload;
-          try {
-            payload = jwt.verify(token, process.env.JWT_SECRET);
-          } catch (err) {
-            callback(false, 401, "invalid token");
+
+          // --- Device connection (authenticated via device id + api key) ---
+          if (!apiKey) {
+            callback(false, 401, "apiKey required for WebSocket");
             return;
           }
-          if (!payload || !payload.sub) {
-            callback(false, 401, "invalid token");
+
+          // Authenticate the device with its pairing credentials
+          const device = await Device.findByDeviceAndKey(deviceId, Device.hashKey(apiKey));
+          if (!device) {
+            callback(false, 403, "invalid device id or api key");
             return;
           }
-          const { rows } = await pool.query("SELECT id, banned FROM users WHERE id = $1", [payload.sub]);
-          if (rows.length === 0) {
-            callback(false, 403, "invalid user");
-            return;
-          }
-          if (rows[0].banned) {
+
+          const { rows: userRows } = await pool.query("SELECT banned FROM users WHERE id = $1", [device.user_id]);
+          if (userRows.length === 0 || userRows[0].banned) {
             callback(false, 403, "account is banned");
             return;
           }
-          info.req.userId = rows[0].id;
-          info.req.isUser = true;
+
+          info.req.device = device;
           callback(true);
-          return;
+        } catch (err) {
+          console.error("WebSocket verifyClient error:", err.message);
+          callback(false, 500, "server error");
         }
-
-        // --- Device connection (authenticated via device id + api key) ---
-        if (!apiKey) {
-          callback(false, 401, "apiKey required for WebSocket");
-          return;
-        }
-
-        // Authenticate the device with its pairing credentials
-        const device = await Device.findByDeviceAndKey(deviceId, Device.hashKey(apiKey));
-        if (!device) {
-          callback(false, 403, "invalid device id or api key");
-          return;
-        }
-
-        const { rows: userRows } = await pool.query("SELECT banned FROM users WHERE id = $1", [device.user_id]);
-        if (userRows.length === 0 || userRows[0].banned) {
-          callback(false, 403, "account is banned");
-          return;
-        }
-
-        info.req.device = device;
-        callback(true);
-      } catch (err) {
-        console.error("WebSocket verifyClient error:", err.message);
-        callback(false, 500, "server error");
-      }
+      })();
     },
   });
 
