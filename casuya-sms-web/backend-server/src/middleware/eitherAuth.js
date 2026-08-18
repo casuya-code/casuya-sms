@@ -1,7 +1,8 @@
 const passport = require("../config/passport");
 const ApiKey = require("../models/ApiKey");
+const asyncHandler = require("./asyncHandler");
 
-module.exports = async (req, res, next) => {
+module.exports = asyncHandler(async (req, res, next) => {
   const apiKey = req.headers["x-api-key"];
   if (apiKey) {
     try {

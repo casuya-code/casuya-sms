@@ -89,6 +89,9 @@ router.post(
       if (err && err.code === "23505") {
         return res.status(409).json({ error: "email already registered" });
       }
+      if (err instanceof Error && err.message.startsWith("password")) {
+        return res.status(400).json({ error: err.message });
+      }
       throw err;
     }
   })

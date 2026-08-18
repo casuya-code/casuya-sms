@@ -47,14 +47,16 @@ async function listByUser(user_id) {
 }
 
 async function revoke(user_id, id) {
-  await query("UPDATE api_keys SET revoked = true WHERE id = $1 AND user_id = $2", [
+  const { rowCount } = await query("UPDATE api_keys SET revoked = true WHERE id = $1 AND user_id = $2", [
     id,
     user_id,
   ]);
+  return rowCount > 0;
 }
 
 async function remove(user_id, id) {
-  await query("DELETE FROM api_keys WHERE id = $1 AND user_id = $2", [id, user_id]);
+  const { rowCount } = await query("DELETE FROM api_keys WHERE id = $1 AND user_id = $2", [id, user_id]);
+  return rowCount > 0;
 }
 
 async function removeAllForUser(user_id) {

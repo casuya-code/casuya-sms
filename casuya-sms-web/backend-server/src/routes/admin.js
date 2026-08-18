@@ -60,7 +60,15 @@ router.patch(
       return res.status(404).json({ error: "user not found" });
     }
     const { role, banned } = req.body || {};
-    if (role && ["user", "admin"].includes(role)) await User.setRole(user.id, role);
+    if (role && ["user", "admin"].includes(role)) {
+      if (role === "user" && user.role === "admin") {
+        const allAdmins = (await User.listAll()).filter((u) => u.role === "admin");
+        if (allAdmins.length <= 1) {
+          return res.status(400).json({ error: "cannot demote the last admin" });
+        }
+      }
+      await User.setRole(user.id, role);
+    }
     if (typeof banned === "boolean") await User.setBanned(user.id, banned);
     const updated = await User.findById(user.id);
     return res.json({ user: User.safeUser(updated) });

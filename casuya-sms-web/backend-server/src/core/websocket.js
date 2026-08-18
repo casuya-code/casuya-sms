@@ -12,7 +12,7 @@ function init(server) {
   const wss = new WebSocketServer({
     server,
     perMessageDeflate: false,
-    verifyClient: async (info, callback) => {
+    verifyClient: (info, callback) => {
       try {
         const url = new URL(info.req.url, "http://localhost");
         const deviceId = url.searchParams.get("deviceId");
@@ -200,8 +200,12 @@ function init(server) {
 function broadcast(deviceId, payload) {
   const socket = deviceSockets.get(deviceId);
   if (!socket || socket.readyState !== 1) return false;
-  socket.send(JSON.stringify(payload));
-  return true;
+  try {
+    socket.send(JSON.stringify(payload));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function handleUserConnection(socket, userId) {
@@ -229,7 +233,9 @@ function notifyUser(userId, payload) {
   if (!sockets || sockets.size === 0) return;
   const msg = JSON.stringify(payload);
   for (const sock of sockets) {
-    if (sock.readyState === 1) sock.send(msg);
+    if (sock.readyState === 1) {
+      try { sock.send(msg); } catch { /* skip dead socket */ }
+    }
   }
 }
 

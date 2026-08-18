@@ -63,7 +63,7 @@ async function remove(user_id, id) {
 
 async function listForEvent(user_id, event) {
   const { rows } = await query(
-    "SELECT id, url, secret FROM webhooks WHERE user_id = $1",
+    "SELECT id, url, secret, events FROM webhooks WHERE user_id = $1",
     [user_id]
   );
   return rows.filter(

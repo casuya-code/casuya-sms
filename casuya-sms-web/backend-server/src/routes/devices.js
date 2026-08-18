@@ -73,7 +73,10 @@ router.delete(
   "/:deviceId",
   auth,
   asyncHandler(async (req, res) => {
-    await Device.remove(req.user.id, req.params.deviceId);
+    const removed = await Device.remove(req.user.id, req.params.deviceId);
+    if (!removed) {
+      return res.status(404).json({ error: "device not found" });
+    }
     return res.json({ ok: true });
   })
 );

@@ -25,7 +25,10 @@ router.post(
   "/:id/revoke",
   auth,
   asyncHandler(async (req, res) => {
-    await ApiKey.revoke(req.user.id, req.params.id);
+    const revoked = await ApiKey.revoke(req.user.id, req.params.id);
+    if (!revoked) {
+      return res.status(404).json({ error: "API key not found" });
+    }
     return res.json({ ok: true });
   })
 );
@@ -34,7 +37,10 @@ router.delete(
   "/:id",
   auth,
   asyncHandler(async (req, res) => {
-    await ApiKey.remove(req.user.id, req.params.id);
+    const removed = await ApiKey.remove(req.user.id, req.params.id);
+    if (!removed) {
+      return res.status(404).json({ error: "API key not found" });
+    }
     return res.json({ ok: true });
   })
 );

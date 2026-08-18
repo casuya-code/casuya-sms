@@ -75,7 +75,7 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "too many requests, please try again later" },
   keyGenerator: ipKeyGenerator,
-  skip: (req) => req.path.startsWith("/api/messages"),
+  skip: (req) => req.path === "/api/messages/received",
 });
 app.use(globalLimiter);
 

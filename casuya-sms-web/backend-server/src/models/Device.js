@@ -118,10 +118,11 @@ async function updateHeartbeat(deviceId, { batteryLevel, isCharging, signalStren
 }
 
 async function remove(user_id, deviceId) {
-  await query("DELETE FROM devices WHERE id = $1 AND user_id = $2", [
+  const { rowCount } = await query("DELETE FROM devices WHERE id = $1 AND user_id = $2", [
     deviceId,
     user_id,
   ]);
+  return rowCount > 0;
 }
 
 async function countOnline() {

@@ -64,7 +64,9 @@ async function deliver(userId, event, payload) {
     const hooks = await Webhook.listForEvent(userId, event);
     if (hooks.length === 0) return;
     for (const hook of hooks) {
-      deliverTo(hook.url, hook.secret, event, payload);
+      deliverTo(hook.url, hook.secret, event, payload).catch((err) =>
+        console.error(`webhook deliverTo error for ${hook.url}:`, err.message)
+      );
     }
   } catch (err) {
     console.error(`webhook deliver error: ${err.message}`);
