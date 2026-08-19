@@ -30,4 +30,4 @@ module.exports = asyncHandler(async (req, res, next) => {
     req.user_id = user.id;
     return next();
   })(req, res, next);
-};
+});

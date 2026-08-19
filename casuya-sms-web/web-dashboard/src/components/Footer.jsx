@@ -81,11 +81,6 @@ export default function Footer() {
               {DOWNLOAD}
               Download Android App
             </a>
-            <div className="footer-badges">
-              <span className="footer-badge">Self-hosted</span>
-              <span className="footer-badge">REST API</span>
-              <span className="footer-badge">MIT Licensed</span>
-            </div>
           </div>
 
           <div className="footer-links">

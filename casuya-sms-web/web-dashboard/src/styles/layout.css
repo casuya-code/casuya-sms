@@ -69,7 +69,14 @@
   border-radius: 8px;
   cursor: pointer;
   text-align: left;
+  white-space: nowrap;
   transition: all 0.15s;
+}
+
+.sidebar-item > span:not(.sidebar-icon):not(.sidebar-badge) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-item:hover {
@@ -102,6 +109,13 @@
   justify-content: center;
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
   flex-shrink: 0;
 }
 

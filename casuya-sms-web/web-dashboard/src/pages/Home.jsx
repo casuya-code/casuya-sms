@@ -156,10 +156,7 @@ export default function Home() {
       <section className="hx-hero" ref={heroRef}>
         <div className={`hx-hero-glow ${heroVis ? "is-visible" : ""}`} />
         <div className={`hx-hero-inner ${heroVis ? "is-visible" : ""}`}>
-          <div className="hx-hero-badge">
-            <span className="hx-hero-badge-dot" />
-            Open Source &middot; Android SMS Gateway
-          </div>
+          
           <h1 className="hx-hero-title">
             Turn Your Phone Into an
             <br />
