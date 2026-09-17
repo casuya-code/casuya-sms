@@ -235,9 +235,14 @@ function fillTemplate(message, row) {
     });
     return dateKeys[Number(num) - 1] ? String(row[dateKeys[Number(num) - 1]] || "") : "";
   });
-  result = result.replace(/\{(numeric_(\d+))\}/g, (_, _full, num) => {
+  result = result.replace(/\{(numeric_(\d+))}/g, (_, _full, num) => {
     return numericCols[Number(num) - 1] ? String(row[numericCols[Number(num) - 1]] || "") : "";
   });
+
+  // Fallback: replace any remaining {COLUMN_NAME} with the row value
+  for (const [key, val] of Object.entries(row)) {
+    result = result.split("{" + key + "}").join(String(val ?? ""));
+  }
 
   return result;
 }

@@ -73,7 +73,11 @@ function parseCSVLine(line) {
 }
 
 function fillTemplate(tpl, row) {
-  return tpl.replace(/\{(\w+)\}/g, (_, key) => row[key] ?? "");
+  let result = tpl;
+  for (const [key, val] of Object.entries(row)) {
+    result = result.split("{" + key + "}").join(val ?? "");
+  }
+  return result;
 }
 
 function StepShell({ step, title, description, locked, complete, children }) {
